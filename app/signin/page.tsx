@@ -1,14 +1,15 @@
 'use client'
-import { useContext, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link  from 'next/link'
-import { getProviders, signIn } from "next-auth/react"
-//import { isConnected, requestAccess } from "argent???"
+import { useContext, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { getProviders, signIn } from 'next-auth/react'
 import { ConfigContext } from '@/components/config' 
 import ButtonWallet from '@/components/ButtonWallet'
 import { fetchApi, postApi } from '@/utils/api'
-
+//import { isConnected, requestAccess } from "argent???"
+import { connect, disconnect } from 'get-starknet'
+//import { disconnect, enable, getAvailableWallets, getDiscoveryWallets, getLastConnectedWallet, getPreAuthorizedWallets } from "get-starknet-core"
 
 export default function Signin() {
   // @ts-ignore: Typescript sucks donkey balls
@@ -20,6 +21,16 @@ export default function Signin() {
   const [userId, setUserId] = useState(config.user)
 
   async function onLogin(){
+    const starknet = await connect()
+    console.log('STRK', starknet)
+    console.log('ACCT', starknet.account)
+
+    //const nonce = await starknet.account.getNonce();
+    //const message = await starknet.account.signMessage(...)
+  }
+
+/*
+  async function onLoginOLD(){
     console.log('LOGIN')
     if(!logged){
       requestAccess().then(address=>{
@@ -75,7 +86,8 @@ export default function Signin() {
       }
     }
   }
-  
+*/
+
   return (
       <div className="w-[500px] mt-48 p-12 mx-auto rounded-xl border">
         <div className="mt-5">
