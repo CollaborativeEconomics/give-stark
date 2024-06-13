@@ -9,16 +9,18 @@ export default async function Initiatives(props: {searchParams:{query?:string, c
   const location = props?.searchParams?.location || ''
   console.log('SEARCH', query, category, location)
   const initiatives = (await searchInitiatives(query, category, location)) || []
-  //console.log('INITS', initiatives.length)
+  console.log('INITS', initiatives.length)
 
   return (
-    <main className="flex min-h-screen flex-col items-stretch container pt-24">
+    <main className="flex min-h-screen flex-col items-stretch container pt-24 mt-8">
       <Card className="flex">
         <SearchBar />
       </Card>
       <div className="grid grid-flow-row grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 pt-10">
         {initiatives?.length ? (
-          initiatives.map((intiative: any) => <InitiativeCard key={intiative.id} data={intiative} />)
+          initiatives.map((initiative: any) => {
+            if(!initiative.inactive){ return <InitiativeCard key={initiative.id} data={initiative} /> }
+          })
         ) : (
           <h1 className="m-4">No initiatives found</h1>
         )}

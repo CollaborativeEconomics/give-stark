@@ -30,7 +30,7 @@ export default function Header() {
       <div className="flex justify-between container">
         <Link href="/">
           <Image
-            src="/GivingUniverseLogoV1.svg"
+            src="/logo.svg"
             alt="Giving Universe"
             className="dark:invert"
             width={300}

@@ -10,7 +10,7 @@ export default function Header() {
         <div>
           <Link href="/" className='block'>
             <Image
-              src="/GivingUniverseLogoV1.svg"
+              src="/logo.svg"
               alt="Giving Universe"
               className="dark:invert"
               width={200}

@@ -10,13 +10,15 @@ export default async function Handler(props:{searchParams?:{query?:string, categ
   const category = props?.searchParams?.category || ''
   const location = props?.searchParams?.location || ''
   const initiatives = await getInitiatives() || []
+  console.log('INITS', initiatives.length)
+  //console.log('INITS', initiatives.map(it=>it.id))
   console.log('SEARCH', query, category, location)
   return (
     <>
       <div className="w-full top-0">
         <div className="container mt-48 mb-16 ml-6 md:ml-auto">
-          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl text-accent-foreground">
-            GIVE-STARK <br/>Blockchain-driven philanthropy <br />
+          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl text-cyan-600">
+            Blockchain-driven philanthropy <br />
             for a transparent world
           </h1>
           <p className="pt-4 w-[95%] md:w-[60%]">

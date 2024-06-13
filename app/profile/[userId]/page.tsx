@@ -29,7 +29,7 @@ export default async function Profile(props: {params:{userId:string}, searchPara
   const nopic = '/media/nopic.png'
 
   return (
-    <main className="flex min-h-screen flex-col items-stretch container py-24">
+    <main className="flex min-h-screen flex-col items-stretch container py-24 mt-8">
       <div className="flex flex-row justify-between">
 
         {/* Avatar */}

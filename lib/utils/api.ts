@@ -40,7 +40,7 @@ export async function postApi(query:string, data:Dictionary) {
 
 
 export async function getUserByWallet(address:string){
-  const result = await fetchApi('user?wallet='+address)
+  const result = await fetchApi('users?wallet='+address)
   console.log('API USER', result)
   if(!result || result?.error){
     return null
@@ -50,7 +50,7 @@ export async function getUserByWallet(address:string){
 
 export async function newUser(rec:Dictionary){
   console.log('API NEW USER', rec)
-  const result = await postApi('user', rec)
+  const result = await postApi('users', rec)
   console.log('API SAVED USER', result)
   if(!result || result?.error){
     return null

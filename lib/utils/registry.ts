@@ -1,5 +1,6 @@
 const apiUrl = process.env.CFCE_REGISTRY_API_URL
-const apiKey = process.env.CFCE_REGISTRY_API_KEY
+//const apiKey = process.env.CFCE_REGISTRY_API_KEY
+const apiKey = process.env.OFFICIAL_CFCE_API_KEY || ''
 
 type Dictionary = { [key: string]: any }
 

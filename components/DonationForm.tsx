@@ -1,4 +1,4 @@
-import { useRef, useState, useContext } from 'react'
+import { useEffect, useState, useMemo, useRef, useContext } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Card } from '@/components/ui/card'
@@ -12,12 +12,15 @@ import { DonationFormSelect } from '@/components/DonationFormSelect'
 import { Separator } from '@/components/ui/separator'
 import { Dictionary, getChainWallets, getChainsList, getChainsMap } from '@/lib/chains/utils'
 import { DonationContext } from '@/components/DonationView'
-import Chains from '@/lib/chains/client/apis'
 import sendReceipt from '@/lib/utils/receipt'
 import { fetchApi, postApi, getUserByWallet, anonymousUser, newUser } from '@/lib/utils/api'
-import getRates from '@/lib/utils/rates'
+//import getRates from '@/lib/utils/rates'
 import NotFound from '@/components/NotFound'
 import { Initiative, Wallet } from '@/types/models'
+
+import { connect, disconnect } from 'get-starknet'
+import { RpcProvider, Provider, Contract, Account, constants, ec, json, uint256 } from 'starknet'
+import { ERC20 } from "@/contracts/ERC20.js"
 
 interface IForm {
   amount: string
@@ -43,7 +46,7 @@ interface IPayment {
   chainName: string
   chainInfo: string
   wallet: string
-  address: string
+  receiver: string
   currency: string
   amount: string
   name: string
@@ -51,17 +54,17 @@ interface IPayment {
   receipt: boolean
 }
 
-export default function DonationForm(props:{initiative:Initiative}) {
-  //console.log('Props', props)
+export default function DonationForm(props:any) {
+  console.log('Props', props)
   const initiative = props.initiative
-  const organization = initiative.organization
+  const usdRate = props.rate
+  const organization = initiative?.organization
+  if(!initiative || !organization){ return <NotFound /> }
   const {donation, setDonation} = useContext(DonationContext)
   const chains = getChainsList()
   const chainLookup = getChainsMap()
   const chainWallets = getChainWallets(chains[0].coinSymbol)
   const chainInfo = chainLookup[chains[0].value]
-
-  // TODO: currentChain should be currently selected chain in wallet instead of first one
   const [showUSD, toggleShowUSD] = useState(false)
   const [currentChain, setCurrentChain] = useState('Starknet')
   const [wallets, setWallets] = useState(chainWallets)
@@ -75,36 +78,6 @@ export default function DonationForm(props:{initiative:Initiative}) {
   const [buttonText, setButtonText] = useState('Donate')
   const [message, setMessage] = useState('One wallet confirmation required')
   const [rateMessage, setRateMessage] = useState('USD conversion rate')
-  //const [currency, setCurrency] = useState(chains[0]?.coinSymbol || 'ETH')
-  //const [usdRate, setUsdRate] = useState(0)
-  //const rates = {}
-
-console.log({chains})
-console.log(chains[0])
-console.log({currentChain})
-console.log({wallets})
-console.log({currentWallet})
-console.log({chainLookup})
-
-/*
-  if(!rates[currency]){
-    getRates(currency, true).then(rate=>{
-      console.log('RATE:', currency, rate)
-      rates[currency] = rate
-      setUsdRate(rate)
-    })
-  }
-*/
-
-  //console.log({wallets})
-  //console.log({currentChain})
-  //console.log({currentWallet})
-  
-  //const { register, watch, handleSubmit, formState } = useForm({
-  //  defaultValues: { amount:0, name: '', email: '', receipt: false, mintnft: false }
-  //})
-  //const { errors } = formState
-  //const [amount, name, email, receipt, mintnft] = watch(['amount', 'name', 'email', 'receipt', 'mintnft'])
 
   function validEmail(text:string){
     //return text.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)
@@ -161,23 +134,14 @@ console.log({chainLookup})
     return donationId
   }
 
-  async function sendPayment({organization, initiative, chainName, chainInfo, wallet, address, currency, amount, name, email, receipt}:IPayment){
+  async function sendPayment({organization, initiative, chainName, chainInfo, wallet, receiver, currency, amount, name, email, receipt}:IPayment){
     setButtonText('WAIT')
     setDisabled(true)
     setMessage('Sending payment, wait a moment...')
     setMessage('Approve payment in your wallet')
 
-    const sdk = Chains[chainName]
-    if(!sdk){
-      console.log('Error sending payment, blockchain not implemented', chainName)
-      setMessage(chainName +' blockchain not implemented. Select an available blockchain')
-      return false
-    }
-    const network = sdk.network
-    const destinationTag = initiative?.tag
-
     // if amount in USD convert by coin rate
-    const usdRate = await getRates(currency, true)
+    //const usdRate = await getRates(currency, true)
     console.log('RATE:', currency, usdRate)
     //rates[currency] = rate
     //setUsdRate(rate)
@@ -189,22 +153,34 @@ console.log({chainLookup})
       : `${coinValue.toFixed(2)} ${currency} at ${usdRate.toFixed(2)} ${currency}/USD`
     console.log('AMT', showUSD, coinValue, usdValue)
     setRateMessage(rateMsg)
+    const wei = amountNum * 10**18
 
-    sdk.sendPayment(address, coinValue, destinationTag, async (result:any)=>{
-      if(result?.error){
-        console.log('Error sending payment', result.error)
-        setMessage('Error sending payment')
-        return false
-      }
-      if(result?.success==false){
-        console.log('Payment rejected')
-        setMessage('Payment rejected by user')
-        return false
-      }
-      const txid = result.txid
-      const sender = result.address
-      console.log('TXID', txid)
-      console.log('SENDER', sender)
+    const starknet = await connect()
+    //const starknet = await connect({ modalMode: "alwaysAsk" })
+    //const starknet = await connect({ modalMode: "neverAsk" })
+    console.log('STRK', starknet)
+    // @ts-ignore: Typescript sucks donkey balls
+    const ready = await starknet?.enable()
+    console.log('READY', ready)
+    // @ts-ignore: Typescript sucks donkey balls
+    const account = starknet?.account
+    console.log('ACCT', account)
+    if(!account){
+      setMessage('Could not connect to your wallet')
+      return
+    }
+    // @ts-ignore: Typescript sucks donkey balls
+    const sender = account?.address
+    const chainId = constants.StarknetChainId.SN_SEPOLIA // SN_MAIN
+    console.log('CHAINID', chainId)
+
+    const contractId = '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d' // STRK
+    const contract = new Contract(ERC20, contractId, account)
+    //console.log('CONTRACT', contract)
+    try {
+      const transfer = await contract.transfer(receiver, {low:wei, high:0});
+      const txid = transfer.transaction_hash
+      console.log('TxId:', txid)
 
       const userResp = await getUserByWallet(sender)
       let user = userResp?.result
@@ -214,14 +190,17 @@ console.log({chainLookup})
         console.log('Anon', user)
         if(!user){
           console.log('Error creating anonymous user')
+          setButtonText('ERROR')
           setMessage('Error saving user data, contact support')
           return false
         }
       }
 
       // Save donation to db
+      const network = process.env.NEXT_PUBLIC_STARKNET_NETWORK || ''
       const saveResp = await saveDonation({organization, initiative, sender, chainName, network, coinValue, usdValue, currency, user})
       if(!saveResp){
+        setButtonText('ERROR')
         setMessage('Donation could not be saved to database, please contact support')
         return false
       }
@@ -251,6 +230,7 @@ console.log({chainLookup})
           address: organization?.mailingAddress,
           ein: organization?.EIN
         },
+        initiativeId: initiative?.id,
         tag: initiative?.tag,
         image: initiative?.defaultAsset,
         date: new Date(),
@@ -262,32 +242,35 @@ console.log({chainLookup})
           name: name || user?.name || 'Anonymous',
           address: sender
         },
+        receiver,
+        contractId,
         chainName,
         rate: usdRate,
-        txid: result.txid
+        txid
       }
       setDonation(NFTData)
       setButtonText('DONE')
       setDisabled(true)
       setMessage('Thank you for your donation!')
-    })
+    } catch(ex) {
+      console.error(ex)
+      setButtonText('ERROR')
+      setMessage('Error sending transaction')
+      return
+    }
   }
 
   async function donate(){
-    //const chainName = currentChain
     const chainName = 'Starknet'
     const currency  = 'STRK'
     const chainInfo = chainLookup[chainName]
     const chainText = chainName
     const wallet    = currentWallet.value
-    //const currency  = chainInfo?.coinSymbol || ''
-    //console.log('TYPE', typeof(amountRef.current))
-    //return
     const amount    = typeof(amountRef)=='object' ? (amountRef.current?.value || '0') : '0'
     const name      = typeof(nameRef)=='object' ? (nameRef.current?.value || '') : ''
     const email     = typeof(emailRef)=='object' ? (emailRef.current?.value || '') : ''
     const receipt   = typeof(receiptRef)=='object' ? (receiptRef.current?.dataset['state']=='checked' || false) : false
-    
+
     console.log('FORM --------')
     console.log('Chain:',    chainName)
     console.log('Currency:', currency)
@@ -306,27 +289,10 @@ console.log({chainLookup})
       setMessage('Error: no wallet in this organization for ' + chainName)
       return false
     }
-    const address = orgWallet.address
-
-    sendPayment({organization, initiative, chainName, chainInfo, wallet, address, currency, amount, name, email, receipt})
+    const receiver = orgWallet.address
+    
+    sendPayment({organization, initiative, chainName, chainInfo, wallet, receiver, currency, amount, name, email, receipt})
   }
-
-/*
-  function amountChanged(evt){
-    const symbol = chainLookup[currentChain].coinSymbol
-    const amount = evt.target.value || '0'
-    const amountNum = parseInt(amount)
-    const coinValue = showUSD ? amountNum : (amountNum / usdRate)
-    const usdValue  = showUSD ? (amountNum * usdRate) : amountNum
-    const rateMsg   = showUSD 
-      ? `${usdValue.toFixed(2)} USD at ${usdRate.toFixed(2)} USD/${symbol}` 
-      : `${coinValue.toFixed(2)} ${symbol} at ${usdRate.toFixed(2)} USD/${symbol}`
-    console.log('AMT', showUSD, coinValue, usdValue)
-    setRateMessage(rateMsg)
-  }
-*/
-
-  if(!initiative || !organization){ return <NotFound /> }
 
   return (
     <div className="flex min-h-full w-full mt-4">
@@ -405,11 +371,6 @@ console.log({chainLookup})
             className="mb-2"
             ref={receiptRef}
           />
-          {/*<CheckboxWithText
-            id="mintnft-check"
-            text="I'd like to receive an NFT receipt"
-            className="mb-6"
-          />*/}
         </div>
         <Separator />
         <div className="flex flex-col items-center justify-center">

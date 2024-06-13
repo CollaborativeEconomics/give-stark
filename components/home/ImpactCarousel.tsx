@@ -46,11 +46,13 @@ export default function ImpactCarousel({ initiatives }: Props) {
         loop
       >
         {initiatives.map((initiative) => {
-          return (
-            <SwiperSlide key={initiative.id}>
-              <InitiativeCardCompactShort {...initiative} />
-            </SwiperSlide>
-          )
+          if(!initiative?.inactive){
+            return (
+              <SwiperSlide key={initiative.id}>
+                <InitiativeCardCompactShort {...initiative} />
+              </SwiperSlide>
+            )
+          }
         })}
       </Swiper>
     </div>

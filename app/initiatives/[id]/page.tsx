@@ -5,20 +5,19 @@ import StoryCard from '@/components/StoryCard'
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer'
 import { Document } from '@contentful/rich-text-types'
 import { Separator } from '@/components/ui/separator'
-import {
-  getInitiativeById,
-  getInitiativesByOrganization,
-} from '@/lib/utils/registry'
+import { getInitiativeById, getInitiativesByOrganization } from '@/lib/utils/registry'
 import OrganizationAvatar from '@/components/OrganizationAvatar'
 import DonationView from '@/components/DonationView'
-//import DonationForm from '@/components/DonationForm'
 import { ReceiptStatus } from '@/types/receipt'
 import InitiativeCardCompact from '@/components/InitiativeCardCompact'
 import NotFound from '@/components/NotFound'
+import getRates from '@/lib/utils/rates'
 
-export default async function Home(props: { params: { id: string } }) {
+
+export default async function Donate(props: { params: { id: string } }) {
   const initId = props.params.id
   const initiative = await getInitiativeById(initId)
+  //console.log('INIT', initiative)
   if (!initiative) {
     return <NotFound />
   }
@@ -26,6 +25,7 @@ export default async function Home(props: { params: { id: string } }) {
   const organization = initiative?.organization
   const stories = initiative?.stories
   const initiatives = await getInitiativesByOrganization(organization.id)
+  const rate = await getRates('STRK')
 
   const receipt = {
     status: ReceiptStatus.pending,
@@ -46,13 +46,13 @@ export default async function Home(props: { params: { id: string } }) {
   }
 
   return (
-    <main className="w-full bg-gradient-to-t from-slate-200 mt-12">
+    <main className="w-full bg-gradient-to-t from-slate-200 dark:from-slate-950 mt-12">
       <div className="relative flex flex-col px-[5%] container pt-24 w-full h-full">
         <div className="flex overflow-hidden mb-4 flex-col md:flex-row">
-          <div className="relative w-full md:w-[45%] h-[200px] md:h-[300px] mb-6 md:mb-0">
+          <div className="relative w-full md:w-[45%] h-[200px] md:h-[300px] mb-12 md:mb-0">
             <Image
-              className="h-[300px]"
-              src={initiative.defaultAsset}
+              className="h-[300px] rounded-lg"
+              src={initiative.defaultAsset||'noimage.png'}
               alt="IMG BG"
               fill
               style={{
@@ -95,7 +95,7 @@ export default async function Home(props: { params: { id: string } }) {
         <Separator className="mb-6" />
 
         <div className="md:flex md:flex-col items-center">
-          <DonationView initiative={initiative} receipt={receipt} />
+          <DonationView initiative={initiative} receipt={receipt} rate={rate} />
         </div>
 
         <div className="mb-10 pt-10 flex justify-center w-full">

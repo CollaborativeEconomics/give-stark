@@ -20,7 +20,7 @@ export function getChainWallet(currency:string){
 
 export function getChainNetwork(chain:string){
   const networks:Dictionary = {
-    'strk':  process.env.NEXT_PUBLIC_STARKNET_NETWORK
+    'strk':  process.env.NEXT_PUBLIC_STARKNET_NETWORK || ''
   }
   const name = networks[chain] || 'testnet'
   return name

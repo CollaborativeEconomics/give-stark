@@ -8,9 +8,3 @@ export interface WalletProvider {
   rpcurl: string
   wssurl?: string
 }
-
-
-
-
-
-

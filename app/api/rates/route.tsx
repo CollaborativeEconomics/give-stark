@@ -10,16 +10,17 @@ export async function GET(request: Request) {
       headers: {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'X-CMC_PRO_API_KEY': process.env.NEXT_PUBLIC_TICKER_API_KEY||''
+        'X-CMC_PRO_API_KEY': process.env.TICKER_API_KEY||''
       }
     }
     res = await fetch(url, opt)
     tkr = await res.json()
+    //console.warn('Ticker:', tkr)
     usd = tkr?.data[coinSymbol]?.quote?.USD?.price
-    console.warn('Ticker:', usd)
-  } catch(ex) {
+    console.warn('Rate:', usd)
+    return Response.json({success: true, rate:usd, symbol:coinSymbol})
+  } catch(ex:any) {
     console.error(`Error fetching rates for symbol ${coinSymbol}:`, ex)
-    tkr = {}
+    return Response.json({error: ex.message})
   }
-  return Response.json(tkr)
 }

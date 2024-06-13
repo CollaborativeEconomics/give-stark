@@ -11,6 +11,7 @@ export enum Chain {
   Optimism,
   Polygon,
   Stellar,
+  Starknet,
   XDC,
   XRPL
 }

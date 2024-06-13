@@ -1,6 +1,10 @@
-import Chains from '@/lib/chains/server/apis'
 import uploadToIPFS from '@/lib/utils/uploadToIPFS'
-import { getOrganizationsByWallet, getInitiativeByTag, getUserByWallet, createNFT } from '@/lib/utils/registry'
+import { getOrganizationById, getInitiativeById, getUserByWallet, createNFT } from '@/lib/utils/registry'
+import { constants, Account, Contract, Provider, RpcProvider } from 'starknet'
+import { feltToStr, feltToHex } from '@/lib/utils/felt'
+import { randomNumber } from '@/lib/utils/random'
+import { getTransactionInfo } from '@/lib/chains/txinfo'
+import abi721 from '@/contracts/NFT721.json'
 
 interface transactionInfo {
   success?: boolean
@@ -11,123 +15,94 @@ interface transactionInfo {
   amount?: string
 }
 
-
-// RIPPLE: Currency code to name
-// Converts currency code from tx info to verify it's Messenger token
-// hexToStr('014D534E47523100000000000000000000000000') -> MSNGR1
-function currencyHexToStr(hex:string) {
-  return Buffer.from(hex, 'hex').toString().trim().replace(/\0/g, '')
-}
-
 // POST /api/nft/mint {paymentId}
 // On donation:
 //   Upload metadata to permanent storage
 //   Mint nft with uri:metadata and get token Id
-//   Create offer Id for NFT transfer
 //   Send tokenId, offerId to client
-
 export async function POST(request: Request) {
   console.log('API MINTING...')
 
   try {
     const body:any = await request.json()
-    const {chain, txid, itag, rate}:{chain:string, txid:string, itag:string, rate:number} = body
-    console.log('CHAIN', chain)
+    const {txid, initid, donor, destin, amount, rate} = body
     console.log('TXID', txid)
-    console.log('INIT', itag)
-    console.log('USD', rate)
+    console.log('INIT', initid)
+    console.log('DONOR', donor)
+    console.log('DESTIN', destin)
+    console.log('AMOUNT', amount)
+    console.log('RATE', rate)
 
-    if(!chain || !txid){
-      return Response.json({ error: 'Required chain and txid are missing' }, {status:400})
+    if(!txid){
+      return Response.json({ error: 'Required txid is missing' }, {status:400})
     }
 
     // Get tx info
-    const txInfo = await Chains[chain].getTransactionInfo(txid)
+    const txInfo = await getTransactionInfo(txid)  // txInfo.result.sender_address
+    //const txInfo = await getTransactionReceipt(txid)  // txInfo.result.execution_status: 'SUCCEEDED'
     console.log('TXINFO', txInfo)
     if(!txInfo){
       return Response.json({ error: 'Transaction not found' }, {status:404})
     }
-    if ('error' in txInfo) {
+    if('error' in txInfo) {
       console.log('ERROR', txInfo.error)
       return Response.json({ error: txInfo.error }, {status:500})
     }
-    //return Response.json({ success: true, image: 'uriImage', metadata: 'uriMeta', tokenId: '123456', offerId: '123457'})
+    if(donor!==txInfo?.result?.sender_address){
+      return Response.json({ error: 'Transaction not valid, wrong sender' }, {status:500})
+    }
 
     // Form data
     const created = new Date().toJSON().replace('T', ' ').substring(0, 19)
-    const donorAddress = txInfo.account || ''
+    const donorAddress = txInfo?.result?.sender_address || ''
     const user = await getUserByWallet(donorAddress)
     const userId = user?.id || ''
-
-    let organizationId = ''
-    let organizationName = ''
-    let organizationAddress = ''
-    let initiativeTag = 0
-    if ('destination' in txInfo) {
-      organizationAddress = txInfo.destination
-    }
-    if ('destinationTag' in txInfo) {
-      //initiativeId = BigInt(txInfo.destinationTag).toString(16)
-      initiativeTag = parseInt(txInfo.destinationTag) || 0
-    } else {
-      initiativeTag = parseInt(itag) || 0
-    }
-
-    // Get org data
-    const result = await getOrganizationsByWallet(organizationAddress)
-    //console.log('ORG', result)
-    if (result.length > 0) {
-      organizationId = result[0].id
-      organizationName = result[0].name
-    } else {
-      console.log('Organization not found', result?.error)
-      return Response.json({ error: 'Organization not found' }, {status:500})
-    }
+  
+    //return Response.json({ success: true, image: 'uriImage', metadata: 'uriMeta', tokenId: '123456', offerId: '123457'})
 
     // Get initiative info
-    let initiative = null
-    let initiativeId = '0'
-    let initiativeTitle = 'Direct donation'
-    if(initiativeTag){
-      initiative = await getInitiativeByTag(initiativeTag.toString())
-      console.log('INITIATIVE', initiative)
-      if(initiative) {
-        initiativeId = initiative.id
-        initiativeTitle = initiative.title
-      }
+    const initiative = await getInitiativeById(initid)
+    //console.log('INITIATIVE', initiative)
+    if(!initiative || initiative?.error) {
+      console.log('ERROR', 'Initiative not found')
+      return Response.json({ error: 'Initiative info not found' }, {status:500})
     }
+    const initiativeId = initiative?.id || ''
+    const initiativeName = initiative?.title || 'Direct Donation'
 
-    const network  = Chains[chain].network
-    const currency = Chains[chain].coinSymbol
-
-    let amount = parseFloat(txInfo.amount) || 0.0
-    let amountCUR = amount.toFixed(4)
-    let amountUSD = (amount * rate).toFixed(4)
-    let coinName = currency
-    let coinIssuer = ''
-
-    let nftTaxon = 123456000 // Constant integer to group all similar NFTs
-    let uriImage = 'ipfs:QmPnrPThofLVGbcJZUfRiHVuDxmHknAHBJsGaSnxfgeWwP' // thank you NFT
-    if(initiative?.imageUri){
-      uriImage = initiative.imageUri
+    // Get organization info
+    const organization = await getOrganizationById(initiative?.organizationId)
+    //console.log('ORGANIZATION', organization)
+    if(!organization || organization?.error) {
+      console.log('ERROR', 'Organization not found')
+      return Response.json({ error: 'Organization info not found' }, {status:500})
     }
+    const organizationId = organization?.id
+    console.log(organizationId);
+    const organizationName = organization?.name
+
+    const network   = process.env.NEXT_PUBLIC_STARKNET_NETWORK || ''
+    const chainName = 'Starknet'
+    const currency  = 'STRK'
+    const amountNum = parseFloat(amount) ||  0.0
+    const amountCUR = amountNum.toFixed(4)
+    const amountUSD = (amountNum * rate).toFixed(4)
+    const uriImage  = initiative?.imageUri || 'ipfs:QmZWgvsGUGykGyDqjL6zjbKjtqNntYZqNzQrFa6UnyZF1n'
 
     // Save metadata
     const metadata = {
-      mintedBy: 'CFCE via Give',
+      mintedBy: 'CFCE via GiveStark',
       created: created,
       donorAddress: donorAddress,
       organization: organizationName,
-      initiative: initiativeTitle,
+      initiative: initiativeName,
       image: uriImage,
-      blockchain: chain,
-      network: network,
-      currency: coinName,
-      issuer: coinIssuer,
+      blockchain: chainName,
+      network,
+      currency,
       amount: amountCUR,
       usdValue: amountUSD
     }
-    //if(coinIssuer){ metadata.issuer = coinIssuer }
     console.log('META', metadata)
     const fileId = 'meta-' + txid // unique file id
     const bytes = Buffer.from(JSON.stringify(metadata, null, 2))
@@ -141,16 +116,22 @@ export async function POST(request: Request) {
     //let uriMeta = process.env.IPFS_GATEWAY_URL + cidMeta
     console.log('URI', uriMeta)
 
-    // Mint NFT
-    const okMint = await Chains[chain].mintNFT(uriMeta, donorAddress)
-    //const okMint = await Chains[chain].mintNFT('ipfs:123456', 'GAU2AJNUVZ47Q4ZJUVAOQFLN3EE3XJUTV34N2EXGKXRBFZ2MWCN2TZGO')
-    //console.log('Mint result', okMint)
-    //return Response.json(okMint)
-    
-    if (!okMint || okMint.error) {
+    // MINT !!!
+    const provider = new RpcProvider({ nodeUrl: process.env.STARKNET_RPC_URI || '' })
+    const address  = process.env.STARKNET_MINTER_ADDRESS || ''
+    const privkey  = process.env.STARKNET_MINTER_PRIVATE || ''
+    const account  = new Account(provider, address, privkey)
+    const tokenNum = randomNumber(10)
+    const ctr721   = '0x045d8da8227be85fec28cd4ba98b33bb1fba0408e1d78947a2d628c34e06ed4c'
+    const contract = new Contract(abi721, ctr721, provider);
+    contract.connect(account)
+    const minted = await contract.safe_mint(address, tokenNum, [])
+    console.log('MINTED', minted)
+
+    if (!minted || minted?.error) {
       return Response.json({ error: 'Error minting NFT' }, {status:500})
     }
-    const tokenId = okMint?.tokenId
+    const tokenId = ctr721 + ' #' + tokenNum
 
     // Save NFT data to Prisma
     const data = {
@@ -161,13 +142,12 @@ export async function POST(request: Request) {
       initiativeId: initiativeId,
       metadataUri: uriMeta,
       imageUri: uriImage,
-      coinLabel: chain,
+      coinLabel: chainName,
       coinNetwork: network,
-      coinSymbol: coinName,
+      coinSymbol: currency,
       coinValue: amountCUR,
       usdValue: amountUSD,
       tokenId: tokenId,
-      offerId: '',
       status: 0
     }
     console.log('NftData', data)
@@ -193,6 +173,7 @@ export async function POST(request: Request) {
       metadata: uriMeta,
       tokenId: tokenId
     })
+
   } catch (ex:any) {
     console.error(ex)
     return Response.json({ success: false, error: ex.message }, {status:500})

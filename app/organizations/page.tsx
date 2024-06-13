@@ -10,7 +10,7 @@ export default async function Organizations(props:{searchParams:{query:string, c
   const organizations = (await searchOrganizations(query, category, location)) || []
 
   return (
-    <main className="flex min-h-screen flex-col items-stretch container pt-24">
+    <main className="flex min-h-screen flex-col items-stretch container pt-24 mt-8">
       <Card className="flex">
         <SearchBar />
       </Card>

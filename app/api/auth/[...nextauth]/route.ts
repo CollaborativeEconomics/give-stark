@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions, User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { newUser, getUserByWallet } from '@/lib/utils/registry'
 import { anonymousUser } from '@/lib/utils/api'
+import { UUID } from '@/lib/utils/random'
 
 interface Credentials {
   address:  string
@@ -70,98 +71,8 @@ const authorize = async (credentials:any) => {
 
 const providers = [
   CredentialsProvider({
-    id: 'Arbitrum',
-    name: 'Arbitrum - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Avalanche',
-    name: 'Avalanche - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Base',
-    name: 'Base - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Binance',
-    name: 'Binance - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Celo',
-    name: 'Celo - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'EOS',
-    name: 'EOS - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Ethereum',
-    name: 'Ethereum - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'EthereumUSDC',
-    name: 'Ethereum (USDC) - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'EthereumUSDT',
-    name: 'Ethereum (USDT)- Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Filecoin',
-    name: 'Filecoin - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Flare',
-    name: 'Flare - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Optimism',
-    name: 'Optimism - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Polygon',
-    name: 'Polygon - Metamask',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'Stellar',
-    name: 'Stellar - Lobstr',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'XRPL',
-    name: 'XRPL - Xaman',
-    credentials,
-    authorize
-  }),
-  CredentialsProvider({
-    id: 'XDC',
-    name: 'XDC - Metamask',
+    id: 'Starknet',
+    name: 'Starknet - Argent',
     credentials,
     authorize
   })

@@ -1,27 +1,43 @@
-export default async function getRates(coinSymbol:string, server:boolean=false){
+// SERVER CALL ONLY - SHOULD NOT EXPOSE API KEY
+
+export default async function getRates(coinSymbol:string){
   console.warn('Getting CMC ticker for symbol', coinSymbol)
-  let url, opt, res, tkr, usd
-  if(server){
-    url = '/api/rates?coin='+coinSymbol
-  } else {
-    url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol='+coinSymbol.toUpperCase()
-  }
   try {
-    opt = {
+    const url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol='+coinSymbol
+    const opt = {
       method: 'GET', 
       headers: {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'X-CMC_PRO_API_KEY': process.env.NEXT_PUBLIC_TICKER_API_KEY||''
+        'X-CMC_PRO_API_KEY': process.env.TICKER_API_KEY||''
       }
     }
-    res = await fetch(url, opt)
-    tkr = await res.json()
-    usd = tkr?.data[coinSymbol]?.quote?.USD?.price || 0
-    console.warn('Ticker:', usd)
+    const res = await fetch(url, opt)
+    const tkr = await res.json()
+    //console.warn('Ticker:', tkr)
+    const usd = tkr?.data[coinSymbol]?.quote?.USD?.price
+    console.warn('Rate:', usd)
+    return usd
   } catch(ex:any) {
     console.error('Error in CMC ticker:', ex)
-    usd = 0
+    return 0
   }
-  return usd
 }
+
+/*
+export default async function getRates(coinSymbol:string){
+  console.warn('Getting CMC ticker for symbol', coinSymbol)
+  const url = '/api/rates?coin='+coinSymbol
+  try {
+    const res = await fetch(url)
+    const tkr = await res.json()
+    //console.warn('Ticker:', tkr)
+    const usd = tkr?.success ? tkr.rate : 0
+    console.warn('Rate:', usd)
+    return usd
+  } catch(ex:any) {
+    console.error('Error in CMC ticker:', ex)
+    return 0
+  }
+}
+*/
