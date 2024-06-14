@@ -43,11 +43,12 @@ export function NavMenu() {
       <div className="flex-row gap-3 items-center hidden md:flex">
         <NavigationMenu>
           <NavigationMenuList>
+          {/*
             <NavigationMenuItem>
               <NavigationMenuTrigger>Partners</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid gap-3 p-4 md:w-[400px] xl:w-[500px] xl:grid-cols-[.75fr_1fr]">
-                  <ListItem href="/docs/installation" title="Sign In">
+                  <ListItem href="https://partners.cfce.io" title="Sign In">
                     Access the partner portal
                   </ListItem>
                   <ListItem
@@ -60,6 +61,7 @@ export function NavMenu() {
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
+          */}
             <NavigationMenuItem>
               {status==SessionStatus.AUTHENTICATED
               ?

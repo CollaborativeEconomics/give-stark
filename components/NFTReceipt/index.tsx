@@ -1,11 +1,11 @@
 'use client'
 import { useContext, useState } from 'react'
 import Image from 'next/image'
-import { DonationContext } from '@/components/DonationView'
 import { TimestampToDateString } from '@/components/ui/date-posted'
-import { ClaimButton } from '@/components/ui/claim-button'
 import { ReceiptStatus } from '@/components/ui/receipt-status'
+import { ClaimButton } from '@/components/ui/claim-button'
 import { NFTReceiptText } from '@/components/NFTReceipt/NFTReceiptText'
+import { DonationContext } from '@/components/DonationView'
 import decimalString from '@/lib/utils/decimalString'
 import Receipt from '@/types/receipt'
 
@@ -13,7 +13,7 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
   const receipt = props.receipt
   const { donation, setDonation } = useContext(DonationContext)
   const [ message, setMessage ] = useState('Claim your NFT')
-  const [ disabled, setDisabled ] = useState(false)
+  const [ disabled, setDisabled ] = useState(true)
   //console.log('Receipt:', receipt)
   //console.log('Donation', donation)
 
@@ -41,12 +41,12 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
     };
     const response = await fetch('/api/nft/mint', options);
     //console.log('Minting response', response)
-    const result = await response.json();
-    console.log('>Result', result);
+    const result = await response.json()
+    console.log('>Result', result)
     if (!result.success) {
-      console.error('Error', result.error);
+      console.error('Error', result.error)
       //setMessage('Error minting NFT')
-      return { success: false, error: 'Error minting NFT' };
+      return { success: false, error: 'Error minting NFT' }
     }
     return result;
   }
@@ -58,9 +58,9 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
     console.log('Claiming...', donation)
 
     const state = structuredClone(donation)
-    //state.status = 'Minting'
-    //setDonation(state)
-    //setMessage('Minting NFT, wait a moment...')
+    state.status = 'Minting'
+    setDonation(state)
+    setMessage('Minting NFT, wait a moment...')
     const minted = await mintNFT(
       donation.txid,
       donation.initiativeId,

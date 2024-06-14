@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Image as Picture, Newspaper, LayoutList } from 'lucide-react'
+import { ButtonLogout } from '@/components/ButtonLogout'
 import { ListObject } from '@/components/ui/list-object'
 import { coinFromChain } from '@/lib/utils/chain'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -29,7 +30,7 @@ export default async function Profile(props: {params:{userId:string}, searchPara
   const nopic = '/media/nopic.png'
 
   return (
-    <main className="flex min-h-screen flex-col items-stretch container py-24 mt-8">
+    <main className="container min-h-screen flex flex-col items-stretch py-24 mt-24">
       <div className="flex flex-row justify-between">
 
         {/* Avatar */}
@@ -63,9 +64,7 @@ export default async function Profile(props: {params:{userId:string}, searchPara
                   <Image src={'/coins/newcoin.png'} width={48} height={48} alt="New chain" />
                 </span>
               </div>
-              <button className="block w-2/3 mt-4 mx-auto py-1 px-8 bg-red-400 text-white rounded-full">
-                <Link href="/api/auth/signout">Log Out</Link>
-              </button>
+              <ButtonLogout />
             </>
           ) : (
             <>

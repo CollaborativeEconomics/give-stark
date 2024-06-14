@@ -28,7 +28,7 @@ export function getChainNetwork(chain:string){
 
 const wallets: Dictionary = {
   argent:    { value: 'Argent',    image: '/wallets/argent.png',    chainEnabled: true },
-  metamask:  { value: 'Metamask',  image: '/wallets/metamask.png',  chainEnabled: true }
+  metamask:  { value: 'Metamask',  image: '/wallets/metamask.png',  chainEnabled: false }
 }
 
 const chainWallets: Dictionary = {

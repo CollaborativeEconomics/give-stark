@@ -65,11 +65,25 @@ export default function Signin() {
 
   async function onLogin(){
     console.log('--LOGIN')
+    if(logged && userId){
+      router.push('/profile/'+userId)
+      return
+    }
     const starknet = await connect()
+    console.log('STRK', starknet)
+    // @ts-ignore: Typescript sucks donkey balls
+    if(!starknet?.isConnected){
+    // @ts-ignore: Typescript sucks donkey balls
+      const ready = await starknet?.enable()
+      console.log('READY', ready)
+    }
     // @ts-ignore: Typescript sucks donkey balls
     const address  = starknet?.account?.address || ''
-    console.log('STRK', starknet)
     console.log('ADDR', address)
+    if(!address){
+      setLoginText('Could not connect to wallet, try again')
+      return
+    }
     setLogged(true)
     setLoginText('WALLET '+address?.substr(0,10)+'...')
     checkUser(address)

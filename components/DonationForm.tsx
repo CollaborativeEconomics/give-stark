@@ -160,8 +160,11 @@ export default function DonationForm(props:any) {
     //const starknet = await connect({ modalMode: "neverAsk" })
     console.log('STRK', starknet)
     // @ts-ignore: Typescript sucks donkey balls
-    const ready = await starknet?.enable()
-    console.log('READY', ready)
+    if(!starknet?.isConnected){
+      // @ts-ignore: Typescript sucks donkey balls
+      const ready = await starknet?.enable()
+      console.log('READY', ready)
+    }
     // @ts-ignore: Typescript sucks donkey balls
     const account = starknet?.account
     console.log('ACCT', account)
