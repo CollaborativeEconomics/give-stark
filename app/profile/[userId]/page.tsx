@@ -34,7 +34,7 @@ export default async function Profile(props: {params:{userId:string}, searchPara
       <div className="flex flex-row justify-between">
 
         {/* Avatar */}
-        <div className="border rounded-md p-8 w-1/3 bg-white">
+        <div className="border rounded-md p-8 w-1/3 bg-card">
           <div className="flex flex-row flex-start items-center rounded-full">
             <Image className="mr-8 rounded-full" src={user.image||nopic} width={100} height={100} alt="Avatar" />
             <div className="flex flex-col flex-start items-start rounded-full">
@@ -48,7 +48,7 @@ export default async function Profile(props: {params:{userId:string}, searchPara
         <div className="p-4 w-1/3">&nbsp;</div>
 
         {/* Chains */}
-        <div className="flex flex-col items-center border rounded-md p-4 w-1/3 bg-white">
+        <div className="flex flex-col items-center border rounded-md p-4 w-1/3 bg-card">
           {user.wallets ? (
             <>
               <h1>Active Chains</h1>
@@ -139,7 +139,7 @@ export default async function Profile(props: {params:{userId:string}, searchPara
                 <Picture size={32} className="pr-2 cursor-pointer" />
               </div>
             </div>
-            <div className="w-full border rounded-md p-10 bg-white">
+            <div className="w-full border rounded-md p-10 bg-card">
               {/* NFTS Receipts */}
               <TabsContent className="TabsContent" value="tab1">
                 <TableReceiptsSort receipts={receipts} />
