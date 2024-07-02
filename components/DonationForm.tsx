@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { CheckboxWithText } from '@/components/ui/checkbox'
 import { DonationFormSelect } from '@/components/DonationFormSelect'
 import { Separator } from '@/components/ui/separator'
-import { Dictionary, getChainWallets, getChainsList, getChainsMap } from '@/lib/chains/utils'
+import { Dictionary, getChainWallets, getChainsList, getChainsMap, getCoinsList } from '@/lib/chains/utils'
 import { DonationContext } from '@/components/DonationView'
 import sendReceipt from '@/lib/utils/receipt'
 import { fetchApi, postApi, getUserByWallet, anonymousUser, newUser } from '@/lib/utils/api'
@@ -57,18 +57,22 @@ interface IPayment {
 export default function DonationForm(props:any) {
   console.log('Props', props)
   const initiative = props.initiative
-  const usdRate = props.rate
+  const usdRate = parseFloat(props?.rate||0) || 0.0
   const organization = initiative?.organization
   if(!initiative || !organization){ return <NotFound /> }
   const {donation, setDonation} = useContext(DonationContext)
+  const chainName = 'Starknet'
+  const currency  = 'STRK'
   const chains = getChainsList()
   const chainLookup = getChainsMap()
   const chainWallets = getChainWallets(chains[0].coinSymbol)
   const chainInfo = chainLookup[chains[0].value]
-  const [showUSD, toggleShowUSD] = useState(false)
-  const [currentChain, setCurrentChain] = useState('Starknet')
+  const chainCoins = getCoinsList(chainName)
+  const [currentChain, setCurrentChain] = useState(chainName)
   const [wallets, setWallets] = useState(chainWallets)
   const [currentWallet, setCurrentWallet] = useState(wallets[0])
+  const [coins, setCoins] = useState(chainCoins)
+  const [currentCoin, setCurrentCoin] = useState(chainCoins[0])
   //const amountInputRef = useRef()
   const amountRef  = useRef<HTMLInputElement>(null)
   const nameRef    = useRef<HTMLInputElement>(null)
@@ -77,7 +81,17 @@ export default function DonationForm(props:any) {
   const [disabled, setDisabled] = useState(false)
   const [buttonText, setButtonText] = useState('Donate')
   const [message, setMessage] = useState('One wallet confirmation required')
+  const [rate, setRate] = useState(usdRate)
   const [rateMessage, setRateMessage] = useState('USD conversion rate')
+  const rateCache:Dictionary = {'STRK':usdRate, 'USDC':1, 'USDT':1}
+
+  console.log('Chains', chains)
+  console.log('CurrChain', currentChain)
+  console.log('Wallets', wallets)
+  console.log('CurrWallet', currentWallet)
+  console.log('Coins', coins)
+  console.log('CurrCoin', currentCoin)
+  console.log('Cache', rateCache)
 
   function validEmail(text:string){
     //return text.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)
@@ -103,6 +117,16 @@ export default function DonationForm(props:any) {
       setMessage('Enter a valid email')
       return false
     }
+  }
+
+  async function getRate(coin:string){
+    console.log('COIN', coin)
+    if(rateCache[coin]){ return rateCache[coin] }
+    const resp = await fetch('/api/rates?coin='+coin)
+    const rate = await resp.json()
+    console.log('RATE', rate)
+    rateCache[coin] = rate
+    return rate
   }
 
   async function saveDonation({organization, initiative, sender, chainName, network, coinValue, usdValue, currency, user}:IDonation){
@@ -135,30 +159,27 @@ export default function DonationForm(props:any) {
   }
 
   async function sendPayment({organization, initiative, chainName, chainInfo, wallet, receiver, currency, amount, name, email, receipt}:IPayment){
+    console.log('--->PAY:', {organization, initiative, chainName, chainInfo, wallet, receiver, currency, amount, name, email, receipt})
     setButtonText('WAIT')
     setDisabled(true)
     setMessage('Sending payment, wait a moment...')
     setMessage('Approve payment in your wallet')
 
-    // if amount in USD convert by coin rate
-    //const usdRate = await getRates(currency, true)
-    console.log('RATE:', currency, usdRate)
-    //rates[currency] = rate
-    //setUsdRate(rate)
-    const amountNum = parseInt(amount||'0')
-    const coinValue = showUSD ? amountNum : (amountNum / usdRate)
-    const usdValue  = showUSD ? (amountNum * usdRate) : amountNum
-    const rateMsg   = showUSD 
-      ? `USD ${usdValue.toFixed(2)} at ${usdRate.toFixed(2)} ${currency}/USD` 
-      : `${coinValue.toFixed(2)} ${currency} at ${usdRate.toFixed(2)} ${currency}/USD`
-    console.log('AMT', showUSD, coinValue, usdValue)
-    setRateMessage(rateMsg)
-    const wei = amountNum * 10**18
+    let decs = 18
+    if(currency=='USDC'){
+      decs = 6
+    }
+
+    const amountStr = parseFloat(amount||'0').toFixed(decs)
+    const amountNum = parseFloat(amountStr)
+    const coinValue = amountNum
+    const usdValue  = amountNum * rate
+    const wei = amountNum * 10**decs
+    console.log('WEI', wei, amountNum, coinValue, usdValue)
 
     const starknet = await connect()
     //const starknet = await connect({ modalMode: "alwaysAsk" })
     //const starknet = await connect({ modalMode: "neverAsk" })
-    console.log('STRK', starknet)
     // @ts-ignore: Typescript sucks donkey balls
     if(!starknet?.isConnected){
       // @ts-ignore: Typescript sucks donkey balls
@@ -177,9 +198,12 @@ export default function DonationForm(props:any) {
     const chainId = constants.StarknetChainId.SN_SEPOLIA // SN_MAIN
     console.log('CHAINID', chainId)
 
-    const contractId = '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d' // STRK
+    let contractId = '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d' // STRK
+    if(currency=='USDC'){
+      contractId = '0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080' // USDC
+    }
+    console.log('CONTRACT', contractId, account)
     const contract = new Contract(ERC20, contractId, account)
-    //console.log('CONTRACT', contract)
     try {
       const transfer = await contract.transfer(receiver, {low:wei, high:0});
       const txid = transfer.transaction_hash
@@ -248,7 +272,7 @@ export default function DonationForm(props:any) {
         receiver,
         contractId,
         chainName,
-        rate: usdRate,
+        rate,
         txid
       }
       setDonation(NFTData)
@@ -264,8 +288,6 @@ export default function DonationForm(props:any) {
   }
 
   async function donate(){
-    const chainName = 'Starknet'
-    const currency  = 'STRK'
     const chainInfo = chainLookup[chainName]
     const chainText = chainName
     const wallet    = currentWallet.value
@@ -273,6 +295,7 @@ export default function DonationForm(props:any) {
     const name      = typeof(nameRef)=='object' ? (nameRef.current?.value || '') : ''
     const email     = typeof(emailRef)=='object' ? (emailRef.current?.value || '') : ''
     const receipt   = typeof(receiptRef)=='object' ? (receiptRef.current?.dataset['state']=='checked' || false) : false
+    const currency  = typeof(currentCoin)=='string' ? currentCoin : currentCoin.value
 
     console.log('FORM --------')
     console.log('Chain:',    chainName)
@@ -293,27 +316,44 @@ export default function DonationForm(props:any) {
       return false
     }
     const receiver = orgWallet.address
+
+    // TODO coin contract here
     
     sendPayment({organization, initiative, chainName, chainInfo, wallet, receiver, currency, amount, name, email, receipt})
+  }
+
+  function recalc(newRate:number, coin:string){
+    console.log('RECALC', rate, newRate, coin)
+    const usdRate    = newRate ?? rate
+    const amount     = typeof(amountRef)=='object' ? (amountRef.current?.value || '0') : '0'
+    const amountNum  = parseFloat(amount)
+    const coinValue  = amountNum
+    const rateValue  = amountNum * usdRate
+    const coinSymbol = coin
+    const rateMsg    = `USD ${rateValue.toFixed(2)} at ${usdRate.toFixed(2)} ${coinSymbol}/USD`
+    console.log('AMT', coinValue, rateValue, coinSymbol)
+    setRateMessage(rateMsg)
   }
 
   return (
     <div className="flex min-h-full w-full mt-4">
       <Card className="py-6 w-full shadow-xl">
         <div className="px-6">
-          <Label htmlFor="currency-select" className="mb-2">
-            Currency
+          <Label htmlFor="chain-select" className="mb-2">
+            Blockchain
           </Label>
           <DonationFormSelect
-            id="currency-select"
+            id="chain-select"
             className="mb-6"
             options={chains}
             currentOption={currentChain ?? ''}
             handleChange={(chain: string) => {
               const coinSymbol = Object.keys(chainLookup).length>0 ? chainLookup[chain].coinSymbol : ''
               const listWallets = getChainWallets(coinSymbol)
+              const listCoins   = getCoinsList(chain)
               setCurrentChain(chain)
               setWallets(listWallets)
+              setCoins(listCoins)
             }}
             placeHolderText="...select a cryptocurrency"
           />
@@ -330,32 +370,42 @@ export default function DonationForm(props:any) {
             }
             placeHolderText="...select a cryptowallet"
           />
+          <Label htmlFor="coin-select" className="mb-2">
+            Coin or Token
+          </Label>
+          <DonationFormSelect
+            id="coin-select"
+            className="mb-6"
+            options={coins}
+            currentOption={currentCoin?.value ?? ''}
+            handleChange={(coin: any) => {
+                setCurrentCoin(coin)
+                console.log('--->>>>> SEL', coin)
+                getRate(coin).then(usd=>{
+                  console.log('GETRATE', usd)
+                  setRate(usd)
+                  recalc(usd, coin)
+                })
+              }
+            }
+            placeHolderText="...select a coin or token"
+          />
         </div>
         <Separator />
         <div className="px-6">
           <div className="w-full my-6">
             <div className="flex flex-row justify-between items-center mb-2">
-              <Label>Amount</Label>{' '}
-              <div className="flex flex-wrap">
-                <Label htmlFor="show-usd-toggle">USD</Label>
-                <Switch
-                  id="show-usd-toggle"
-                  valueBasis={showUSD}
-                  handleToggle={() => {
-                    toggleShowUSD(!showUSD)
-                  }}
-                />
-                <Label>{chainLookup[currentChain].coinSymbol}</Label>
-              </div>
+              <Label>Amount</Label>
             </div>
             <div className="my-auto">
               <InputWithContent
                 className="pl-4"
                 type="text"
                 id="amount"
-                text={ showUSD ? '| ' + chainLookup[currentChain].coinSymbol : '| USD' }
+                text={ '| ' + (currentCoin?.value ?? currentCoin ) }
                 ref={amountRef}
                 divRef={amountRef}
+                onChange={()=>recalc(rate, currentCoin)}
               />
             </div>
             <Label className="block mt-2 text-right">{rateMessage}</Label>

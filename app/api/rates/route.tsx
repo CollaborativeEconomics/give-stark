@@ -1,3 +1,4 @@
+// api/rates?coin=BTC
 export async function GET(request: Request) {
   const requrl = new URL(request.url)
   const coinSymbol = (requrl.searchParams.get('coin') || '').toUpperCase()

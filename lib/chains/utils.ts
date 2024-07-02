@@ -62,3 +62,25 @@ export function getChainsMap(){
   })
   return chains
 }
+
+export function getCoinsList(chain:string){
+  const coins:Dictionary = {
+    'Starknet':[
+      {
+        value:  'STRK',
+        image:   '/coins/strk.png',
+        contract: '0x',
+        native: true,
+        chainEnabled: true
+      },
+      {
+        value:  'USDC',
+        image:   '/coins/usdc.png',
+        contract: '0x',
+        native: false,
+        chainEnabled: true
+      }
+    ]
+  }
+  return coins[chain] || []
+}
