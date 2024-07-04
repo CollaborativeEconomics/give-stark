@@ -126,7 +126,7 @@ export default async function Profile(props: {params:{userId:string}, searchPara
               <div className="mb-2">
                 <TabsList className="TabsList" aria-label="Donations data">
                   <TabsTrigger className="TabsTrigger" value="tab1">
-                    NFTs Receipts
+                    NFT Receipts
                   </TabsTrigger>
                   <TabsTrigger className="TabsTrigger" value="tab2">
                     My Donations

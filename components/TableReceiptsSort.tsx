@@ -1,5 +1,6 @@
-"use client"
+'use client'
 import { useState } from "react"
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 //import { ChevronUp, ChevronDown } from 'lucide-react'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
@@ -28,6 +29,7 @@ type Receipt = {
 type Dictionary = { [key: string]: any }
 
 export default function TableReceipts(props: { receipts: NFTData[] }){
+  const router = useRouter()
   const receipts = props?.receipts || []
   const rows:Receipt[] = receipts.map(rec => { 
     return {
@@ -79,12 +81,34 @@ export default function TableReceipts(props: { receipts: NFTData[] }){
     getSortedRowModel: getSortedRowModel()
   })
 
-  const receiptRows = table.getRowModel().rows
+  const list = table.getRowModel().rows
 
-  function ShowRows(){
-    return receiptRows.map((row) => {
+  function clicked(evt:any){
+    let rowid = 0
+    // If image, get parent id
+    if(evt.target.parentNode.tagName=='TD'){
+      rowid = parseInt(evt.target.parentNode.parentNode.dataset.id)
+    } else {
+      rowid = parseInt(evt.target.parentNode.dataset.id)
+    }
+    const nftid = data[rowid].id
+    console.log('CLICKED', rowid, nftid)
+    console.log('DATA', data[rowid])
+    router.push('/nft/'+nftid)
+  }
+
+  function NoRows(){
+    return (
+      <TableRow>
+        <TableCell className="col-span-5">No receipts found</TableCell>
+      </TableRow>
+    )
+  }
+
+  function AllRows(){
+    return list.map((row) => {
       return (
-        <TableRow key={row.id}>
+        <TableRow key={row.id} data-id={row.id}>
           {row.getVisibleCells().map((cell) => { 
             return (
               <TableCell key={cell.id}>
@@ -100,14 +124,6 @@ export default function TableReceipts(props: { receipts: NFTData[] }){
     })
   }
 
-  function NoRows(){
-    return (
-      <TableRow>
-        <TableCell className="col-span-5">No receipts found</TableCell>
-      </TableRow>
-    )
-  }
-
   return (
     <Table id="table-nfts" className="w-full">
       <TableHeader>
@@ -115,34 +131,32 @@ export default function TableReceipts(props: { receipts: NFTData[] }){
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <TableHead key={header.id}>
-                {header.isPlaceholder
-                ? null
-                : (
-                    <div
-                      {...{
-                        className: header.column.getCanSort()
-                          ? 'cursor-pointer select-none'
-                          : '',
-                        onClick: header.column.getToggleSortingHandler()
-                      }}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc : ' ↑',
-                        desc: ' ↓',
-                      }[header.column.getIsSorted() as string] ?? null}
-                    </div>
+                {header.isPlaceholder ? null : (
+                  <div
+                    {...{
+                      className: header.column.getCanSort()
+                        ? 'cursor-pointer select-none'
+                        : '',
+                      onClick: header.column.getToggleSortingHandler()
+                    }}
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                    {{
+                      asc : ' ↑',
+                      desc: ' ↓',
+                    }[header.column.getIsSorted() as string] ?? null}
+                  </div>
                 )}
               </TableHead>
             ))}
           </TableRow>
         ))}
       </TableHeader>
-      <TableBody>
-        { receiptRows.length ? <ShowRows /> : <NoRows /> }
+      <TableBody onClick={clicked}>
+        { list.length ? <AllRows /> : <NoRows /> }
       </TableBody>
     </Table>
   )

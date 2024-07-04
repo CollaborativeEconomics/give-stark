@@ -1,4 +1,4 @@
-const apiUrl = process.env.CFCE_REGISTRY_API_URL
+const apiUrl = process.env.CFCE_REGISTRY_API_URL || ''
 //const apiKey = process.env.CFCE_REGISTRY_API_KEY
 const apiKey = process.env.OFFICIAL_CFCE_API_KEY || ''
 
@@ -75,8 +75,10 @@ export const getSettingByName = (name: string) => fetchRegistry('settings?name='
 export const newOrganization = (body: Dictionary) => postRegistry('organizations', body)
 export const getOrganizations = () => fetchRegistry('organizations')
 export const getOrganizationById = (id: string) => fetchRegistry(`organizations/${id}`)
+export const getOrganizationByEmail = (email: string) => fetchRegistry(`organizations?email=${email}`)
 export const getOrganizationsByCategory = (categorySlug: string) => fetchRegistry(`organizations?category=${categorySlug}`)
 export const getOrganizationsByWallet = (walletAddress: string) => fetchRegistry(`organizations?wallet=${walletAddress}`)
+export const getOrganizationsByChain = (chain: string) => fetchRegistry(`organizations?chain=${chain}`)
 export const getFeaturedOrganization = () => fetchRegistry(`organizations?featured=true`)
 export const searchOrganizations = (q:string, c:string, l:string) => fetchRegistry(`organizations?search=${q}&category=${c}&location=${l}`)
 
@@ -97,20 +99,26 @@ export const getProviders = () => fetchRegistry('providers')
 export const newCredit = (body: Dictionary) => postRegistry('credits', body)
 export const getCreditById = (id: string) => fetchRegistry(`credits/${id}`)
 export const getCredits = () => fetchRegistry('credits')
-export const getCreditsByInitiative = (id: string) => fetchRegistry(`credits?initid=${id}`)
-export const getCreditsByProvider = (id: string) => fetchRegistry(`credits?provid=${id}`)
+export const getCreditsByInitiative = (id: string) => fetchRegistry(`credits?initiativeid=${id}`)
+export const getCreditsByProvider = (id: string) => fetchRegistry(`credits?providerid=${id}`)
+export const updateCredit = (id: string, data: Dictionary) => postRegistry(`credits/${id}`, data)
 
 export const createNFT = (body: Dictionary) => postRegistry('nft', body)
+export const getNFTs = () => fetchRegistry(`nft`)
 export const getAllNFTs = (id: string) => fetchRegistry(`nft`)
+export const getNFTById = (id: string) => fetchRegistry(`nft?id=${id}`)
+export const getNFTByTokenId = (id: string) => fetchRegistry(`nft?tokenid=${id}`)
 export const getNFTsByAccount = (id: string) => fetchRegistry(`nft?userid=${id}`)
+export const getNFTsByWallet = (id: string) => fetchRegistry(`nft?address=${id}`)
 export const getNFTsByOrganization = (id: string) => fetchRegistry(`nft?orgid=${id}`)
 
 export const newUser = (body: Dictionary) => postRegistry('users', body)
 export const getUsers = () => fetchRegistry('users')
 export const getUserByWallet = (wallet: string) => fetchRegistry('users?wallet='+wallet)
+export const getUserByEmail = (email: string) => fetchRegistry('users?email='+email)
 export const getUserById = (id: string) => fetchRegistry('users/'+id)
 export const updateUser = (id: string, body: Dictionary) => postRegistry('users/'+id, body)
-export const getUserWallets = () => fetchRegistry('userwallets')
+export const getUserWallets = (userid: string) => fetchRegistry('userwallets?userid='+userid)
 export const newUserWallet = (body: Dictionary) => postRegistry('userwallets', body)
 
 export const newStory = (body: Dictionary) => postRegistry('stories', body)
@@ -128,6 +136,7 @@ export const getLocations = () => fetchRegistry('locations')
 
 export const newDonation = (body: Dictionary) => postRegistry('donations', body)
 export const getDonations = () => fetchRegistry('donations')
+export const getDonationById = (id: string) => fetchRegistry('donations?id='+id)
 export const getDonationsByUser = (id: string) => fetchRegistry('donations?userid='+id)
 
 export const getFavoriteOrganizations = (userid: string) => fetchRegistry('donations?favs='+userid)
