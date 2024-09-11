@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
 // CLIENT LIBS
-import Starknet  from './starknet'
+import Starknet from './starknet';
 
 const Chains: Record<string, any> = {
-  'Starknet':   Starknet
-}
+  Starknet: Starknet,
+};
 
-export default Chains
+export default Chains;

@@ -1,10 +1,10 @@
-import { cn } from '@/lib/shadCnUtil'
-import React from 'react'
-import { InputProps } from './input'
+import { cn } from '@/lib/shadCnUtil';
+import React from 'react';
+import { InputProps } from './input';
 
 export interface SwitchProps extends InputProps {
-  valueBasis: boolean
-  handleToggle: any
+  valueBasis: boolean;
+  handleToggle: any;
 }
 
 const Switch = React.forwardRef<HTMLDivElement, SwitchProps>(
@@ -30,9 +30,9 @@ const Switch = React.forwardRef<HTMLDivElement, SwitchProps>(
           </label>
         </div>
       </div>
-    )
+    );
   }
-)
-Switch.displayName = 'switch'
+);
+Switch.displayName = 'switch';
 
-export { Switch }
+export { Switch };

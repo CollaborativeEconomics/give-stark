@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
-import { cn } from '@/lib/shadCnUtil'
-import { Button } from '../ui/button'
+import { cn } from '@/lib/shadCnUtil';
+import { Button } from '../ui/button';
 
 export interface ActionBarBoxProps
   extends React.HTMLAttributes<HTMLDivElement> {}
@@ -22,10 +22,10 @@ const ActionBarBox = React.forwardRef<HTMLDivElement, ActionBarBoxProps>(
         ref={ref}
         {...props}
       />
-    )
+    );
   }
-)
-ActionBarBox.displayName = 'action-bar-box'
+);
+ActionBarBox.displayName = 'action-bar-box';
 
 const ActionBarButton = React.forwardRef<
   HTMLButtonElement,
@@ -36,8 +36,8 @@ const ActionBarButton = React.forwardRef<
       className={cn('bg-white text-black text-md font-normal', className)}
       {...props}
     />
-  )
-})
-ActionBarButton.displayName = 'action-bar-button'
+  );
+});
+ActionBarButton.displayName = 'action-bar-button';
 
-export { ActionBarBox, ActionBarButton }
+export { ActionBarBox, ActionBarButton };

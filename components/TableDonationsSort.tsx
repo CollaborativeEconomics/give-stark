@@ -1,37 +1,52 @@
-'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { title } from 'process'
-import { coinFromChain } from '@/lib/utils/chain'
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
-import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { title } from 'process';
+import { coinFromChain } from '@/lib/utils/chain';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
+import {
+  ColumnDef,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
 
 interface Donation {
-  id: string
-  created: Date
+  id: string;
+  created: Date;
   initiative: {
-    title: string
-  }
+    title: string;
+  };
   organization: {
-    name: string
-  }
-  amount: string
-  chain: string
-  storyId: string
-  image: string
+    name: string;
+  };
+  amount: string;
+  chain: string;
+  storyId: string;
+  image: string;
 }
 
 interface DonationHeader extends Omit<Donation, 'initiative' | 'organization'> {
-  initiative: string
-  organization: string
+  initiative: string;
+  organization: string;
 }
 
-type Dictionary = { [key: string]: any }
+type Dictionary = { [key: string]: any };
 
 export default function TableDonationsSort(props: Dictionary) {
-  const router = useRouter()
-  const donations: Donation[] = props?.donations || []
+  const router = useRouter();
+  const donations: Donation[] = props?.donations || [];
   const records = donations.map((rec) => {
     return {
       id: rec.id,
@@ -41,14 +56,14 @@ export default function TableDonationsSort(props: Dictionary) {
       amount: rec.amount,
       chain: rec.chain,
       storyId: rec.storyId,
-      image: rec.storyId ? '/media/icon-story.svg' : ''
-    }
-  })
+      image: rec.storyId ? '/media/icon-story.svg' : '',
+    };
+  });
 
-  const [data, setData] = useState(records)
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [data, setData] = useState(records);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const columnHelper = createColumnHelper<DonationHeader>()
+  const columnHelper = createColumnHelper<DonationHeader>();
 
   const columns = [
     columnHelper.accessor('created', {
@@ -73,9 +88,9 @@ export default function TableDonationsSort(props: Dictionary) {
     }),
     columnHelper.accessor('image', {
       header: 'Impact',
-      cell: (info) => info.getValue()
+      cell: (info) => info.getValue(),
     }),
-  ]
+  ];
 
   const table = useReactTable({
     data,
@@ -83,51 +98,59 @@ export default function TableDonationsSort(props: Dictionary) {
     state: { sorting },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel()
-  })
+    getSortedRowModel: getSortedRowModel(),
+  });
 
-  const list = table.getRowModel().rows
+  const list = table.getRowModel().rows;
 
-  function clicked(evt:any){
-    if(list.length<1){ return }
-    let rowid = 0
-    // If image, get parent id
-    if(evt.target.parentNode.tagName=='TD'){
-      rowid = parseInt(evt.target.parentNode.parentNode.dataset.id)
-    } else {
-      rowid = parseInt(evt.target.parentNode.dataset.id)
+  function clicked(evt: any) {
+    if (list.length < 1) {
+      return;
     }
-    const nftid = data[rowid].id
-    console.log('CLICKED', rowid, nftid)
-    console.log('DATA', data[rowid])
-    router.push('/donations/'+nftid)
+    let rowid = 0;
+    // If image, get parent id
+    if (evt.target.parentNode.tagName == 'TD') {
+      rowid = parseInt(evt.target.parentNode.parentNode.dataset.id);
+    } else {
+      rowid = parseInt(evt.target.parentNode.dataset.id);
+    }
+    const nftid = data[rowid].id;
+    console.log('CLICKED', rowid, nftid);
+    console.log('DATA', data[rowid]);
+    router.push('/donations/' + nftid);
   }
 
-  function NoRows(){
+  function NoRows() {
     return (
       <TableRow>
         <TableCell className="col-span-5">No donations found</TableCell>
       </TableRow>
-    )
+    );
   }
 
-  function AllRows(){
+  function AllRows() {
     return list.map((row) => {
       return (
         <TableRow key={row.id} data-id={row.id}>
           {row.getVisibleCells().map((cell) => {
             return (
               <TableCell key={cell.id}>
-                { (cell?.column?.id=='image' && cell?.getValue()!='')
-                  ? (<Image src={cell?.getValue() as string} width={20} height={20} alt="NFT" />)
-                  : flexRender(cell.column.columnDef.cell, cell.getContext())
-                }
+                {cell?.column?.id == 'image' && cell?.getValue() != '' ? (
+                  <Image
+                    src={cell?.getValue() as string}
+                    width={20}
+                    height={20}
+                    alt="NFT"
+                  />
+                ) : (
+                  flexRender(cell.column.columnDef.cell, cell.getContext())
+                )}
               </TableCell>
-            )}
-          )}
+            );
+          })}
         </TableRow>
-      )
-    })
+      );
+    });
   }
 
   return (
@@ -162,8 +185,8 @@ export default function TableDonationsSort(props: Dictionary) {
         ))}
       </TableHeader>
       <TableBody onClick={clicked}>
-        { list.length ? <AllRows /> : <NoRows /> }
+        {list.length ? <AllRows /> : <NoRows />}
       </TableBody>
     </Table>
-  )
+  );
 }

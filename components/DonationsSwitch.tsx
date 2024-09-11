@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -11,8 +10,8 @@ interface Props {
 export default function DonationsSwitch() {
   const activeStyle = 'bg-card text-foreground shadow';
   const params = useSearchParams();
-  const page = params.get('tab') || 'receipts'
-  console.log('PATH', page)
+  const page = params.get('tab') || 'receipts';
+  console.log('PATH', page);
   return (
     <div className="inline-flex items-center justify-center rounded-lg bg-accent p-2 mb-2 text-muted-foreground">
       <div

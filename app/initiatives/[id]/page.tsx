@@ -1,31 +1,33 @@
-import { useState, createContext } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import StoryCard from '@/components/StoryCard'
-import { documentToReactComponents } from '@contentful/rich-text-react-renderer'
-import { Document } from '@contentful/rich-text-types'
-import { Separator } from '@/components/ui/separator'
-import { getInitiativeById, getInitiativesByOrganization } from '@/lib/utils/registry'
-import OrganizationAvatar from '@/components/OrganizationAvatar'
-import DonationView from '@/components/DonationView'
-import { ReceiptStatus } from '@/types/receipt'
-import InitiativeCardCompact from '@/components/InitiativeCardCompact'
-import NotFound from '@/components/NotFound'
-import getRates from '@/lib/utils/rates'
-
+import { useState, createContext } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import StoryCard from '@/components/StoryCard';
+import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
+import { Document } from '@contentful/rich-text-types';
+import { Separator } from '@/components/ui/separator';
+import {
+  getInitiativeById,
+  getInitiativesByOrganization,
+} from '@/lib/utils/registry';
+import OrganizationAvatar from '@/components/OrganizationAvatar';
+import DonationView from '@/components/DonationView';
+import { ReceiptStatus } from '@/types/receipt';
+import InitiativeCardCompact from '@/components/InitiativeCardCompact';
+import NotFound from '@/components/NotFound';
+import getRates from '@/lib/utils/rates';
 
 export default async function Donate(props: { params: { id: string } }) {
-  const initId = props.params.id
-  const initiative = await getInitiativeById(initId)
+  const initId = props.params.id;
+  const initiative = await getInitiativeById(initId);
   //console.log('INIT', initiative)
   if (!initiative) {
-    return <NotFound />
+    return <NotFound />;
   }
 
-  const organization = initiative?.organization
-  const stories = initiative?.stories
-  const initiatives = await getInitiativesByOrganization(organization.id)
-  const rate = await getRates('STRK')
+  const organization = initiative?.organization;
+  const stories = initiative?.stories;
+  const initiatives = await getInitiativesByOrganization(organization.id);
+  const rate = await getRates('STRK');
 
   const receipt = {
     status: ReceiptStatus.pending,
@@ -43,7 +45,7 @@ export default async function Donate(props: { params: { id: string } }) {
     donor: {
       name: 'Anonymous',
     },
-  }
+  };
 
   return (
     <main className="w-full bg-gradient-to-t from-slate-200 dark:from-slate-950 mt-12">
@@ -52,7 +54,7 @@ export default async function Donate(props: { params: { id: string } }) {
           <div className="relative w-full md:w-[45%] h-[200px] md:h-[300px] mb-12 md:mb-0">
             <Image
               className="h-[300px] rounded-lg"
-              src={initiative.defaultAsset||'noimage.png'}
+              src={initiative.defaultAsset || 'noimage.png'}
               alt="IMG BG"
               fill
               style={{
@@ -109,7 +111,7 @@ export default async function Donate(props: { params: { id: string } }) {
                 </p>
                 {initiatives.map((item: any) => {
                   if (item.id == initiative.id) {
-                    return
+                    return;
                   }
                   return (
                     <InitiativeCardCompact
@@ -123,7 +125,7 @@ export default async function Donate(props: { params: { id: string } }) {
                       name={organization.name}
                       avatarImg={organization.image}
                     />
-                  )
+                  );
                 })}
               </div>
             )}
@@ -133,7 +135,7 @@ export default async function Donate(props: { params: { id: string } }) {
               </p>
               {stories?.length ? (
                 stories.map((story: any) => {
-                  return <StoryCard key={story.id} story={story} />
+                  return <StoryCard key={story.id} story={story} />;
                 })
               ) : (
                 <h1 className="m-4">No stories found</h1>
@@ -143,5 +145,5 @@ export default async function Donate(props: { params: { id: string } }) {
         </div>
       </div>
     </main>
-  )
+  );
 }

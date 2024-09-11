@@ -1,30 +1,30 @@
-import * as React from 'react'
-import { cn } from '@/lib/shadCnUtil'
+import * as React from 'react';
+import { cn } from '@/lib/shadCnUtil';
 import {
   AlertTriangle,
   CheckCircle,
   Hourglass,
   LucideIcon,
   RefreshCw,
-} from 'lucide-react'
-import { ReceiptStatus as Status } from '@/types/receipt'
+} from 'lucide-react';
+import { ReceiptStatus as Status } from '@/types/receipt';
 
 export interface Props extends React.HTMLAttributes<HTMLDivElement> {
-  className?: string
-  status: string
+  className?: string;
+  status: string;
 }
 
 interface BodyProps {
-  className: string
-  Icon: LucideIcon
-  text: string
-  subtext: string
-  iconWrapperClassName?: string
+  className: string;
+  Icon: LucideIcon;
+  text: string;
+  subtext: string;
+  iconWrapperClassName?: string;
 }
 
 interface WrapperProps {
-  className?: string
-  Icon: LucideIcon
+  className?: string;
+  Icon: LucideIcon;
 }
 
 function ReceiptBodyBuilder(status: string): React.JSX.Element {
@@ -37,7 +37,7 @@ function ReceiptBodyBuilder(status: string): React.JSX.Element {
           text="Claim your NFT"
           subtext="Thank you for your donation"
         />
-      )
+      );
     case Status.pending:
       return (
         <ReceiptStatusBody
@@ -46,7 +46,7 @@ function ReceiptBodyBuilder(status: string): React.JSX.Element {
           text="Not Yet Minted"
           subtext="Complete the donation to claim NFT"
         />
-      )
+      );
     case Status.minting:
       return (
         <ReceiptStatusBody
@@ -56,7 +56,7 @@ function ReceiptBodyBuilder(status: string): React.JSX.Element {
           subtext="Transaction received"
           iconWrapperClassName="animate-spin"
         />
-      )
+      );
     case Status.minted:
       return (
         <ReceiptStatusBody
@@ -65,7 +65,7 @@ function ReceiptBodyBuilder(status: string): React.JSX.Element {
           text="Minted!"
           subtext="NFT has been sent to your wallet"
         />
-      )
+      );
     case Status.rejected:
       return (
         <ReceiptStatusBody
@@ -74,7 +74,7 @@ function ReceiptBodyBuilder(status: string): React.JSX.Element {
           text="Not Claimed"
           subtext="Donor did not claim NFT"
         />
-      )
+      );
     default:
       return (
         <ReceiptStatusBody
@@ -83,7 +83,7 @@ function ReceiptBodyBuilder(status: string): React.JSX.Element {
           text="Failed"
           subtext="Contact support"
         />
-      )
+      );
   }
 }
 
@@ -100,10 +100,10 @@ const ReceiptStatus = React.forwardRef<HTMLDivElement, Props>(
       >
         {ReceiptBodyBuilder(status)}
       </div>
-    )
+    );
   }
-)
-ReceiptStatus.displayName = 'receipt-status'
+);
+ReceiptStatus.displayName = 'receipt-status';
 
 const IconWrapper = React.forwardRef<HTMLDivElement, WrapperProps>(
   ({ className, Icon, ...props }, ref) => {
@@ -111,10 +111,10 @@ const IconWrapper = React.forwardRef<HTMLDivElement, WrapperProps>(
       <div ref={ref} className={cn(className)} {...props}>
         <Icon size="40px" color="white" />
       </div>
-    )
+    );
   }
-)
-IconWrapper.displayName = 'icon-wrapper'
+);
+IconWrapper.displayName = 'icon-wrapper';
 
 const ReceiptStatusBody = React.forwardRef<HTMLDivElement, BodyProps>(
   ({ className, iconWrapperClassName, text, subtext, Icon, ...props }, ref) => {
@@ -135,9 +135,9 @@ const ReceiptStatusBody = React.forwardRef<HTMLDivElement, BodyProps>(
           <p className="font-base text-gray-200">{subtext}</p>
         </div>
       </div>
-    )
+    );
   }
-)
-ReceiptStatusBody.displayName = 'receipt-status-body'
+);
+ReceiptStatusBody.displayName = 'receipt-status-body';
 
-export { ReceiptStatus }
+export { ReceiptStatus };

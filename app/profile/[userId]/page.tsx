@@ -1,42 +1,65 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { Image as Picture, Newspaper, LayoutList } from 'lucide-react'
-import { ButtonLogout } from '@/components/ButtonLogout'
-import { ListObject } from '@/components/ui/list-object'
-import { coinFromChain } from '@/lib/utils/chain'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getUserById, getNFTsByAccount, getDonationsByUser, getFavoriteOrganizations, getUserBadges, getRecentStories } from '@/lib/utils/registry'
-import TableReceiptsSort from '@/components/TableReceiptsSort'
-import TableDonationsSort from '@/components/TableDonationsSort'
-import StoryCardCompactVert from '@/components/StoryCardCompactVert'
-import { NFTData, Donation, Organization, Category, Story, User } from '@/types/models'
+import Image from 'next/image';
+import Link from 'next/link';
+import { Image as Picture, Newspaper, LayoutList } from 'lucide-react';
+import { ButtonLogout } from '@/components/ButtonLogout';
+import { ListObject } from '@/components/ui/list-object';
+import { coinFromChain } from '@/lib/utils/chain';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  getUserById,
+  getNFTsByAccount,
+  getDonationsByUser,
+  getFavoriteOrganizations,
+  getUserBadges,
+  getRecentStories,
+} from '@/lib/utils/registry';
+import TableReceiptsSort from '@/components/TableReceiptsSort';
+import TableDonationsSort from '@/components/TableDonationsSort';
+import StoryCardCompactVert from '@/components/StoryCardCompactVert';
+import {
+  NFTData,
+  Donation,
+  Organization,
+  Category,
+  Story,
+  User,
+} from '@/types/models';
 
-export default async function Profile(props: {params:{userId:string}, searchParams:{tab:string}}) {
-  const userid = props?.params?.userId || ''
-  const search = props?.searchParams?.tab || 'receipts'
-  const user:User = await getUserById(userid)
-  if(!user){
+export default async function Profile(props: {
+  params: { userId: string };
+  searchParams: { tab: string };
+}) {
+  const userid = props?.params?.userId || '';
+  const search = props?.searchParams?.tab || 'receipts';
+  const user: User = await getUserById(userid);
+  if (!user) {
     return (
       <main className="flex min-h-screen flex-col items-stretch container py-24">
         <h1 className="m-4">User not found</h1>
       </main>
-    )
+    );
   }
-  const receipts:NFTData[] = await getNFTsByAccount(userid) || []
-  const donations:Donation[] = await getDonationsByUser(userid) || []
-  const favorgs:Organization[] = await getFavoriteOrganizations(userid) || []
-  const badges:Category[] = await getUserBadges(userid) || []
-  const stories:Story[] = await getRecentStories(5) || []
-  const nopic = '/media/nopic.png'
+  const receipts: NFTData[] = (await getNFTsByAccount(userid)) || [];
+  const donations: Donation[] = (await getDonationsByUser(userid)) || [];
+  const favorgs: Organization[] =
+    (await getFavoriteOrganizations(userid)) || [];
+  const badges: Category[] = (await getUserBadges(userid)) || [];
+  const stories: Story[] = (await getRecentStories(5)) || [];
+  const nopic = '/media/nopic.png';
 
   return (
     <main className="container min-h-screen flex flex-col items-stretch py-24 mt-24">
       <div className="flex flex-row justify-between">
-
         {/* Avatar */}
         <div className="border rounded-md p-8 w-1/3 bg-card">
           <div className="flex flex-row flex-start items-center rounded-full">
-            <Image className="mr-8 rounded-full" src={user.image||nopic} width={100} height={100} alt="Avatar" />
+            <Image
+              className="mr-8 rounded-full"
+              src={user.image || nopic}
+              width={100}
+              height={100}
+              alt="Avatar"
+            />
             <div className="flex flex-col flex-start items-start rounded-full">
               <h1 className="font-bold text-lg">{user.name}</h1>
               <h2 className="">{user.email}</h2>
@@ -53,15 +76,32 @@ export default async function Profile(props: {params:{userId:string}, searchPara
             <>
               <h1>Active Chains</h1>
               <div className="mt-4 pb-4 w-full border-b">
-                {user.wallets.map((item:any)=>{
+                {user.wallets.map((item: any) => {
                   return (
-                    <span key={item.id} className="inline-block border rounded-full p-1 mx-1">
-                      <Image src={'/coins/' + (coinFromChain(item.chain)||'none') + '.png'} width={48} height={48} alt="Chain" />
+                    <span
+                      key={item.id}
+                      className="inline-block border rounded-full p-1 mx-1"
+                    >
+                      <Image
+                        src={
+                          '/coins/' +
+                          (coinFromChain(item.chain) || 'none') +
+                          '.png'
+                        }
+                        width={48}
+                        height={48}
+                        alt="Chain"
+                      />
                     </span>
-                  )
+                  );
                 })}
                 <span key={0} className="inline-block border rounded-full p-1">
-                  <Image src={'/coins/newcoin.png'} width={48} height={48} alt="New chain" />
+                  <Image
+                    src={'/coins/newcoin.png'}
+                    width={48}
+                    height={48}
+                    alt="New chain"
+                  />
                 </span>
               </div>
               <ButtonLogout />
@@ -77,45 +117,60 @@ export default async function Profile(props: {params:{userId:string}, searchPara
 
       {/* Mid Section */}
       <div className="mt-12 flex flex-row justify-between">
-
         {/* Sidebar */}
         <div className="w-1/4 mr-12">
-          
           {/* Fav Orgs */}
           <h1 className="text-2xl font-medium">Favorite Organizations</h1>
           <div className="grid grid-cols-2 gap-2 mb-8">
-            {favorgs.map((item:any)=>{
-              const org = item.organization
+            {favorgs.map((item: any) => {
+              const org = item.organization;
               return (
-                <div key={org.id} className="flex flex-row justify-start items-center content-center mt-4">
-                  <Image className="rounded-full mr-1" src={org.image} width={64} height={64} alt="Organization" />
+                <div
+                  key={org.id}
+                  className="flex flex-row justify-start items-center content-center mt-4"
+                >
+                  <Image
+                    className="rounded-full mr-1"
+                    src={org.image}
+                    width={64}
+                    height={64}
+                    alt="Organization"
+                  />
                   <h1 className="text-sm text-center">{org.name}</h1>
                 </div>
-              )
+              );
             })}
           </div>
-          
+
           {/* Badges */}
           <h1 className="text-2xl font-medium mb-4">Badges</h1>
           <div className="grid grid-cols-4 gap-2 mb-8">
-            {badges.map((item:any)=>{
-              const badge = item.category
-              return (<Image key={badge.id} className="mr-1" src={badge.image} width={72} height={72} alt="Badge" />)
+            {badges.map((item: any) => {
+              const badge = item.category;
+              return (
+                <Image
+                  key={badge.id}
+                  className="mr-1"
+                  src={badge.image}
+                  width={72}
+                  height={72}
+                  alt="Badge"
+                />
+              );
             })}
           </div>
 
           {/* Stories */}
           <h1 className="text-2xl font-medium">Recent Stories</h1>
           <div className="">
-            {stories.map((story:any)=>{
+            {stories.map((story: any) => {
               return (
                 <div className="my-4" key={story.id}>
                   <StoryCardCompactVert story={story} />
                 </div>
-              )
+              );
             })}
           </div>
-
         </div>
 
         {/* Table */}
@@ -153,5 +208,5 @@ export default async function Profile(props: {params:{userId:string}, searchPara
         </div>
       </div>
     </main>
-  )
+  );
 }

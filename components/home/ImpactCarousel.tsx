@@ -1,35 +1,35 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState } from 'react'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { Pagination, Navigation, Autoplay } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/pagination'
-import 'swiper/css/navigation'
-import InitiativeCardCompactShort from '../InitiativeCardCompactShort'
-import Initiative from '@/types/initiative'
+import { useEffect, useRef, useState } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination, Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+import InitiativeCardCompactShort from '../InitiativeCardCompactShort';
+import Initiative from '@/types/initiative';
 
 interface Props {
-  initiatives: Initiative[]
+  initiatives: Initiative[];
 }
 
 export default function ImpactCarousel({ initiatives }: Props) {
-  const innerWidth = typeof window !== 'undefined' ? window.innerWidth : 1366
-  const [screenWidth, setScreenWidth] = useState(innerWidth)
+  const innerWidth = typeof window !== 'undefined' ? window.innerWidth : 1366;
+  const [screenWidth, setScreenWidth] = useState(innerWidth);
   const setDimension = () => {
-    setScreenWidth(innerWidth)
-  }
+    setScreenWidth(innerWidth);
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.addEventListener('resize', setDimension)
+      window.addEventListener('resize', setDimension);
       return () => {
-        window.removeEventListener('resize', setDimension)
-      }
+        window.removeEventListener('resize', setDimension);
+      };
     }
-  }, [screenWidth])
+  }, [screenWidth]);
 
-  const slideCount = screenWidth / 400
+  const slideCount = screenWidth / 400;
 
   return (
     <div className="relative left-0 right-0">
@@ -46,15 +46,15 @@ export default function ImpactCarousel({ initiatives }: Props) {
         loop
       >
         {initiatives.map((initiative) => {
-          if(!initiative?.inactive){
+          if (!initiative?.inactive) {
             return (
               <SwiperSlide key={initiative.id}>
                 <InitiativeCardCompactShort {...initiative} />
               </SwiperSlide>
-            )
+            );
           }
         })}
       </Swiper>
     </div>
-  )
+  );
 }

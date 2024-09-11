@@ -1,11 +1,11 @@
-import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/shadCnUtil'
-import { ReceiptStatus } from '@/types/receipt'
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/shadCnUtil';
+import { ReceiptStatus } from '@/types/receipt';
 
 export interface ClaimButtonProps extends React.HTMLAttributes<HTMLDivElement> {
-  status: ReceiptStatus
+  status: ReceiptStatus;
 }
 
 const ClaimButton = React.forwardRef<HTMLDivElement, ClaimButtonProps>(
@@ -18,14 +18,14 @@ const ClaimButton = React.forwardRef<HTMLDivElement, ClaimButtonProps>(
       {createClaimButton(status)}
     </div>
   )
-)
-ClaimButton.displayName = 'claim-button'
+);
+ClaimButton.displayName = 'claim-button';
 
 function createClaimButton(status: ReceiptStatus): React.JSX.Element {
-  let claimText: ReceiptStatus = ReceiptStatus.claim
+  let claimText: ReceiptStatus = ReceiptStatus.claim;
   switch (status) {
     case ReceiptStatus.claim:
-      claimText = ReceiptStatus.claim
+      claimText = ReceiptStatus.claim;
       return (
         <button
           type="button"
@@ -33,9 +33,9 @@ function createClaimButton(status: ReceiptStatus): React.JSX.Element {
         >
           <p className="text-slate-200 text-center w-full">{claimText}</p>
         </button>
-      )
+      );
     case ReceiptStatus.minted:
-      claimText = ReceiptStatus.minted
+      claimText = ReceiptStatus.minted;
       return (
         <button
           type="button"
@@ -44,9 +44,9 @@ function createClaimButton(status: ReceiptStatus): React.JSX.Element {
         >
           <p className="text-white text-center w-full">{claimText}</p>
         </button>
-      )
+      );
     default:
-      claimText = ReceiptStatus.pending
+      claimText = ReceiptStatus.pending;
       return (
         <button
           type="button"
@@ -55,8 +55,8 @@ function createClaimButton(status: ReceiptStatus): React.JSX.Element {
         >
           <p className="text-slate-200 text-center w-full">{claimText}</p>
         </button>
-      )
+      );
   }
 }
 
-export { ClaimButton }
+export { ClaimButton };

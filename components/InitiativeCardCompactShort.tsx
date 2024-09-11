@@ -1,8 +1,8 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { Card, CardContent } from './ui/card'
-import { DateDisplay } from './ui/date-posted'
-import Initiative from '@/types/initiative'
+import Image from 'next/image';
+import Link from 'next/link';
+import { Card, CardContent } from './ui/card';
+import { DateDisplay } from './ui/date-posted';
+import Initiative from '@/types/initiative';
 
 export default function InitiativeCardCompactShort(initiative: Initiative) {
   return (
@@ -32,5 +32,5 @@ export default function InitiativeCardCompactShort(initiative: Initiative) {
         </Link>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -12,6 +12,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@avnu/gasless-sdk": "^0.1.4",
     "@aws-sdk/client-s3": "^3.507.0",
     "@contentful/rich-text-react-renderer": "^15.19.0",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
@@ -38,8 +39,6 @@
     "cookies-next": "^4.1.0",
     "encoding": "^0.1.13",
     "flowbite": "^2.2.0",
-    "get-starknet": "^3.3.0",
-    "get-starknet-core": "^4.0.0-next.5",
     "images": "^3.2.4",
     "lucide-react": "^0.288.0",
     "mailgun.js": "^10.1.0",
@@ -51,11 +50,12 @@
     "react-dom": "^18",
     "react-hook-form": "^7.50.0",
     "starknet": "^6.9.0",
+    "starknetkit": "^1.1.9",
     "swiper": "^11.0.5",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "web3": "^4.2.2",
-    "zod": "^3.22.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.5.3",

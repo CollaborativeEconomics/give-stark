@@ -1,6 +1,6 @@
-'use client'
-import * as React from 'react'
-import { cn } from '@/lib/shadCnUtil'
+'use client';
+import * as React from 'react';
+import { cn } from '@/lib/shadCnUtil';
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
@@ -18,9 +18,9 @@ const NFTReceiptText = React.forwardRef<HTMLInputElement, InputProps>(
       >
         {children}
       </p>
-    )
+    );
   }
-)
-NFTReceiptText.displayName = 'NFT-receipt-text'
+);
+NFTReceiptText.displayName = 'NFT-receipt-text';
 
-export { NFTReceiptText }
+export { NFTReceiptText };

@@ -1,24 +1,24 @@
-"use client"
-import { createContext, useState } from 'react'
+'use client';
+import { createContext, useState } from 'react';
 
 const settings = {
   name: 'Give Stark',
   version: '1.0',
   theme: 'light',
   wallet: '',
-  user: ''
-}
+  user: '',
+};
 
-export const ConfigContext = createContext(settings)
+export const ConfigContext = createContext(settings);
 
-export function ConfigProvider(props:any) {
-  const children = props.children
-  const [config, setConfig] = useState(settings)
+export function ConfigProvider(props: any) {
+  const children = props.children;
+  const [config, setConfig] = useState(settings);
 
   return (
     // @ts-ignore: Typescript sucks donkey balls
     <ConfigContext.Provider value={{ config, setConfig }}>
       {children}
     </ConfigContext.Provider>
-  )
+  );
 }

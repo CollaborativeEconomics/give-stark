@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { ActionBarBox, ActionBarButton } from './ActionBarContent'
+import Link from 'next/link';
+import { ActionBarBox, ActionBarButton } from './ActionBarContent';
 
 export default function ActionBar() {
   return (
@@ -38,5 +38,5 @@ export default function ActionBar() {
         </div>
       </ActionBarBox>
     </div>
-  )
+  );
 }

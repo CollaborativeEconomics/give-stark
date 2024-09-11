@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
 import {
   InstructionPaneSectionContent,
   InstructionPaneSectionText,
   InstructionPaneSectionTitle,
   InstructionPaneSectionImageBlend,
-} from './InstructionPaneSection'
-import Link from 'next/link'
-import RiveAnimation from './RiveAnimation'
+} from './InstructionPaneSection';
+import Link from 'next/link';
+import RiveAnimation from './RiveAnimation';
 
 export default function InstructionPanes() {
   return (
@@ -60,5 +60,5 @@ export default function InstructionPanes() {
       </div>
       <InstructionPaneSectionImageBlend sourceProperty="bg-[url('/home/ReceiveNFTV2.jpg')]" />
     </div>
-  )
+  );
 }

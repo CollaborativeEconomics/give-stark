@@ -1,15 +1,15 @@
-"use client"
-import { useState, createContext } from 'react'
-import DonationForm from '@/components/DonationForm'
-import NFTReceipt from '@/components/NFTReceipt'
+'use client';
+import { useState, createContext } from 'react';
+import DonationForm from '@/components/DonationForm';
+import NFTReceipt from '@/components/NFTReceipt';
 
-export const DonationContext = createContext() // For use in NFTReceipt component
+export const DonationContext = createContext(); // For use in NFTReceipt component
 
-export default function DonationView({initiative, receipt, rate}){
-  const [donation, setDonation] = useState(receipt)
+export default function DonationView({ initiative, receipt, rate }) {
+  const [donation, setDonation] = useState(receipt);
 
   return (
-    <DonationContext.Provider value={{donation, setDonation}}>
+    <DonationContext.Provider value={{ donation, setDonation }}>
       <div className="flex flex-nowrap lg:flex-nowrap gap-10 items-start">
         <div className="w-full lg:w-[60%]">
           <DonationForm initiative={initiative} rate={rate} />
@@ -19,5 +19,5 @@ export default function DonationView({initiative, receipt, rate}){
         </div>
       </div>
     </DonationContext.Provider>
-  )
+  );
 }

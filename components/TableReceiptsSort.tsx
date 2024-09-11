@@ -1,10 +1,17 @@
-'use client'
-import { useState } from "react"
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 //import { ChevronUp, ChevronDown } from 'lucide-react'
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
-import { NFTData } from '@/types/models'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
+import { NFTData } from '@/types/models';
 
 import {
   ColumnDef,
@@ -14,7 +21,7 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 type Receipt = {
   id: string;
@@ -24,53 +31,55 @@ type Receipt = {
   organization?: string;
   amount: number;
   coin?: string;
-}
+};
 
-type Dictionary = { [key: string]: any }
+type Dictionary = { [key: string]: any };
 
-export default function TableReceipts(props: { receipts: NFTData[] }){
-  const router = useRouter()
-  const receipts = props?.receipts || []
-  const rows:Receipt[] = receipts.map(rec => { 
+export default function TableReceipts(props: { receipts: NFTData[] }) {
+  const router = useRouter();
+  const receipts = props?.receipts || [];
+  const rows: Receipt[] = receipts.map((rec) => {
     return {
       id: rec.id,
-      image: rec.imageUri.startsWith('ipfs') ? 'https://ipfs.filebase.io/ipfs/'+rec.imageUri.substr(5) : rec.imageUri,
+      image: rec.imageUri.startsWith('ipfs')
+        ? 'https://ipfs.filebase.io/ipfs/' + rec.imageUri.substr(5)
+        : rec.imageUri,
       imageUri: rec.imageUri,
       initiative: rec.initiative?.title,
       organization: rec.organization?.name,
       amount: rec.coinValue,
-      coin: rec.coinSymbol
-    }
-  })
+      coin: rec.coinSymbol,
+    };
+  });
 
-  const [order, setOrder] = useState('')
-  const [data, setData] = useState(rows)
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [order, setOrder] = useState('');
+  const [data, setData] = useState(rows);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const columnHelper = createColumnHelper<Receipt>()
+  const columnHelper = createColumnHelper<Receipt>();
 
   const columns = [
-    columnHelper.accessor("image", {
-      header: "Image",
+    columnHelper.accessor('image', {
+      header: 'Image',
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor("initiative", {
-      header: "Initiative",
+    columnHelper.accessor('initiative', {
+      header: 'Initiative',
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor("organization", {
-      header: "Organization",
+    columnHelper.accessor('organization', {
+      header: 'Organization',
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor("amount", {
-      header: "Amount",
+    columnHelper.accessor('amount', {
+      header: 'Amount',
       cell: (info) => info.getValue(),
     }),
-    columnHelper.accessor("coin", {
-      header: "Coin",
+    columnHelper.accessor('coin', {
+      header: 'Coin',
       cell: (info) => info.getValue(),
     }),
-  ]
+  ];
 
   const table = useReactTable({
     data,
@@ -78,50 +87,56 @@ export default function TableReceipts(props: { receipts: NFTData[] }){
     state: { sorting },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel()
-  })
+    getSortedRowModel: getSortedRowModel(),
+  });
 
-  const list = table.getRowModel().rows
+  const list = table.getRowModel().rows;
 
-  function clicked(evt:any){
-    let rowid = 0
+  function clicked(evt: any) {
+    let rowid = 0;
     // If image, get parent id
-    if(evt.target.parentNode.tagName=='TD'){
-      rowid = parseInt(evt.target.parentNode.parentNode.dataset.id)
+    if (evt.target.parentNode.tagName == 'TD') {
+      rowid = parseInt(evt.target.parentNode.parentNode.dataset.id);
     } else {
-      rowid = parseInt(evt.target.parentNode.dataset.id)
+      rowid = parseInt(evt.target.parentNode.dataset.id);
     }
-    const nftid = data[rowid].id
-    console.log('CLICKED', rowid, nftid)
-    console.log('DATA', data[rowid])
-    router.push('/nft/'+nftid)
+    const nftid = data[rowid].id;
+    console.log('CLICKED', rowid, nftid);
+    console.log('DATA', data[rowid]);
+    router.push('/nft/' + nftid);
   }
 
-  function NoRows(){
+  function NoRows() {
     return (
       <TableRow>
         <TableCell className="col-span-5">No receipts found</TableCell>
       </TableRow>
-    )
+    );
   }
 
-  function AllRows(){
+  function AllRows() {
     return list.map((row) => {
       return (
         <TableRow key={row.id} data-id={row.id}>
-          {row.getVisibleCells().map((cell) => { 
+          {row.getVisibleCells().map((cell) => {
             return (
               <TableCell key={cell.id}>
-                { cell?.column?.id=='image' 
-                  ? (<Image src={cell?.getValue() as string} width={64} height={64} alt="NFT" />)
-                  : flexRender(cell.column.columnDef.cell, cell.getContext())
-                }
+                {cell?.column?.id == 'image' ? (
+                  <Image
+                    src={cell?.getValue() as string}
+                    width={64}
+                    height={64}
+                    alt="NFT"
+                  />
+                ) : (
+                  flexRender(cell.column.columnDef.cell, cell.getContext())
+                )}
               </TableCell>
-            )}
-          )}
+            );
+          })}
         </TableRow>
-      )
-    })
+      );
+    });
   }
 
   return (
@@ -137,7 +152,7 @@ export default function TableReceipts(props: { receipts: NFTData[] }){
                       className: header.column.getCanSort()
                         ? 'cursor-pointer select-none'
                         : '',
-                      onClick: header.column.getToggleSortingHandler()
+                      onClick: header.column.getToggleSortingHandler(),
                     }}
                   >
                     {flexRender(
@@ -145,7 +160,7 @@ export default function TableReceipts(props: { receipts: NFTData[] }){
                       header.getContext()
                     )}
                     {{
-                      asc : ' ↑',
+                      asc: ' ↑',
                       desc: ' ↓',
                     }[header.column.getIsSorted() as string] ?? null}
                   </div>
@@ -156,8 +171,8 @@ export default function TableReceipts(props: { receipts: NFTData[] }){
         ))}
       </TableHeader>
       <TableBody onClick={clicked}>
-        { list.length ? <AllRows /> : <NoRows /> }
+        {list.length ? <AllRows /> : <NoRows />}
       </TableBody>
     </Table>
-  )
+  );
 }
