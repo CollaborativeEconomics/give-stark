@@ -1,5 +1,5 @@
-import { useState, useRef, useContext } from 'react';
-import { z } from 'zod';
+import { useState, useRef, useContext, useEffect } from 'react';
+import { set, z } from 'zod';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { InputWithContent } from '@/components/ui/input-with-content';
@@ -9,6 +9,15 @@ import { CheckboxWithText } from '@/components/ui/checkbox';
 import { DonationFormSelect } from '@/components/DonationFormSelect';
 import { Separator } from '@/components/ui/separator';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
+import {
   Dictionary,
   getChainWallets,
   getChainsList,
@@ -17,6 +26,7 @@ import {
 } from '@/lib/chains/utils';
 import { DonationContext } from '@/components/DonationView';
 import sendReceipt from '@/lib/utils/receipt';
+import { DummyPayment } from '@/lib/utils/random';
 import {
   postApi,
   getUserByWallet,
@@ -29,7 +39,14 @@ import { Wallet } from '@/types/models';
 import { ERC20 } from '@/contracts/ERC20.js';
 
 import { connect } from 'starknetkit';
-import { Provider, Contract, Call, constants } from 'starknet';
+import {
+  Provider,
+  Contract,
+  Call,
+  constants,
+  wallet,
+  WalletAccount,
+} from 'starknet';
 import {
   executeCalls,
   fetchAccountCompatibility,
@@ -42,7 +59,6 @@ import {
   SEPOLIA_BASE_URL,
   ExecuteCallsOptions,
   fetchGaslessStatus,
-  fetchBuildTypedData,
 } from '@avnu/gasless-sdk';
 
 interface IForm {
@@ -63,18 +79,39 @@ interface IDonation {
   user: Dictionary;
 }
 
+interface IDonationOperation {
+  organization?: Dictionary;
+  initiative?: Dictionary;
+  sender: string;
+  chainName: string;
+  coinValue: number;
+  usdValue: number;
+  receiver: string;
+  name: string;
+  email: string;
+  receipt: boolean;
+  contractId: string;
+  currency: string;
+}
+
 interface IPayment {
   organization?: Dictionary;
   initiative?: Dictionary;
   chainName: string;
   chainInfo: string;
   wallet: string;
+  sender: string;
   receiver: string;
   currency: string;
   amount: string;
   name: string;
   email: string;
   receipt: boolean;
+  account: any;
+  wei: number;
+  contractId: string;
+  coinValue: number;
+  usdValue: number;
 }
 
 export default function DonationForm(props: any) {
@@ -98,6 +135,7 @@ export default function DonationForm(props: any) {
   const [currentWallet, setCurrentWallet] = useState(wallets[0]);
   const [coins, setCoins] = useState(chainCoins);
   const [currentCoin, setCurrentCoin] = useState(chainCoins[0]);
+  const [txid, setTxid] = useState('');
   //const amountInputRef = useRef()
   const amountRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -109,17 +147,16 @@ export default function DonationForm(props: any) {
   const [rate, setRate] = useState(usdRate);
   const [rateMessage, setRateMessage] = useState('USD conversion rate');
   const rateCache: Dictionary = { STRK: usdRate, USDC: 1, USDT: 1 };
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [donationState, setDonationState] = useState<IPayment>(DummyPayment);
 
-  // Gasless Transaction variables
-  const [tx, setTx] = useState<string>();
-  const [paymasterRewards, setPaymasterRewards] = useState<PaymasterReward[]>(
-    []
-  );
-  const [gasTokenPrices, setGasTokenPrices] = useState<GasTokenPrice[]>([]);
-  const [gasTokenPrice, setGasTokenPrice] = useState<GasTokenPrice>();
-  const [maxGasTokenAmount, setMaxGasTokenAmount] = useState<bigint>();
-  const [gaslessCompatibility, setGaslessCompatibility] =
-    useState<GaslessCompatibility>();
+  useEffect(() => {
+    if (donationState) {
+      // Perform actions based on the updated donationState
+      console.log('Updated Donation State:', donationState);
+      // You can also call any function that needs the updated state here
+    }
+  }, [donationState]);
 
   console.log('Chains', chains);
   console.log('CurrChain', currentChain);
@@ -212,12 +249,18 @@ export default function DonationForm(props: any) {
     chainName,
     chainInfo,
     wallet,
+    sender,
     receiver,
     currency,
     amount,
     name,
     email,
     receipt,
+    account,
+    coinValue,
+    usdValue,
+    wei,
+    contractId,
   }: IPayment) {
     console.log('--->PAY:', {
       organization,
@@ -237,209 +280,255 @@ export default function DonationForm(props: any) {
     setMessage('Sending payment, wait a moment...');
     setMessage('Approve payment in your wallet');
 
-    let decs = 18;
-    if (currency == 'USDC') {
-      decs = 6;
-    }
-
-    const amountStr = parseFloat(amount || '0').toFixed(decs);
-    const amountNum = parseFloat(amountStr);
-    const coinValue = amountNum;
-    const usdValue = amountNum * rate;
-    const wei = amountNum * 10 ** decs;
-    console.log('WEI', wei, amountNum, coinValue, usdValue);
-
-    const starknet = await connect();
-    //const starknet = await connect({ modalMode: "alwaysAsk" })
-    //const starknet = await connect({ modalMode: "neverAsk" })
-    // @ts-ignore: Typescript sucks donkey balls
-    // if(!starknet?.isConnected){
-    //   // @ts-ignore: Typescript sucks donkey balls
-    //   const ready = await starknet?.wallet?.enable()
-    //   console.log('READY', ready)
+    //   const myFrontendProviderUrl = 'https://free-rpc.nethermind.io/sepolia-juno/v0_7';
+    //   if (!starknet) {
+    //     console.error('Starknet is not connected');
+    //     return; // Handle the error appropriately
     // }
-    // @ts-ignore: Typescript sucks donkey balls
-    const account = starknet?.wallet?.account;
-    console.log('ACCT', account);
-    if (!account) {
-      setMessage('Could not connect to your wallet');
-      return;
-    }
+    //   const myWalletAccount = new WalletAccount({ nodeUrl: myFrontendProviderUrl }, starknet.account);
+    //   myWalletAccount.getDeploymentData()
 
-    // @ts-ignore: Typescript sucks donkey balls
-    const sender = account?.address;
-    const chainId = constants.StarknetChainId.SN_SEPOLIA; // SN_MAIN
-    console.log('CHAINID', chainId);
+    // const walletdata = await wallet.deploymentData(validWallet)
 
-    let contractId =
-      '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d'; // STRK
-    if (currency == 'USDC') {
-      contractId =
-        '0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080'; // USDC
-    }
-    console.log('CONTRACT', contractId, account);
-    const contract = new Contract(ERC20, contractId, account);
     try {
       // Gasless Transaction
       const address: string = account.address;
-      let options: GaslessOptions = { baseUrl: SEPOLIA_BASE_URL };
 
-      let gaslessCompatibility;
-      try {
-        gaslessCompatibility = await fetchAccountCompatibility(
-          address,
-          options
-        );
-      } catch (error) {
-        console.error('Error fetching account compatibility:', error);
-        gaslessCompatibility = null; // or handle it as needed
-      }
-      console.log('GASLESS', gaslessCompatibility);
-      let txid = '';
+      const weihex = '0x' + wei.toString(16);
 
-      const accountStatus = await fetchGaslessStatus(options);
-      console.log('AccountStatus', accountStatus);
-      if (!gaslessCompatibility?.isCompatible) {
-        const transfer = await contract.transfer(receiver, {
-          low: wei,
-          high: 0,
-        });
-        txid = transfer.transaction_hash;
-        console.log('TxId:', txid);
-      } else {
-        const fetchAccountsRewardsResponse = await fetchAccountsRewards(
-          account.address,
-          options
-        );
-        setPaymasterRewards(fetchAccountsRewardsResponse);
-        const gasTokenPrice = await fetchGasTokenPrices(options);
-        console.log('GasTokenPrice', gasTokenPrice);
+      // const response = await fetch(
+      //   'https://starknet.api.avnu.fi/paymaster/v1/build-typed-data',
+      //   {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       'api-key': process.env.NEXT_PUBLIC_AVNU_KEY || '',
+      //     },
+      //     body: JSON.stringify({
+      //       calls: calls,
+      //       userAddress: address,
+      //       }asTokenAddress: undefined,
+      //       maxGasTokenAmount: undefined,
+      //       accountClasshash: '0x13bfe114fb1cf405bfc3a7f8dbe2d91db146c17521d40dcf57e16d6b59fa8e6',
+      //     }),
+      //   }
+      // );
+      // const data = await response.json();
+      // }
 
-        // const estimatedGasFees = estimateCalls()
-        console.log('GasTokenPrice', gasTokenPrice);
+      // const accountStatus = await fetchGaslessStatus(options);
+      // console.log('AccountStatus', accountStatus);
+      // if (!gaslessCompatibility?.isCompatible) {
+      //   const transfer = await contract.transfer(receiver, {
+      //     low: wei,
+      //     high: 0,
+      //   });
+      //   txid = transfer.transaction_hash;
+      //   console.log('TxId:', txid);
+      // } else {
+      const options: GaslessOptions = {
+        baseUrl: SEPOLIA_BASE_URL,
+        apiPublicKey: process.env.NEXT_PUBLIC_AVNU_PUBLIC_KEY,
+        apiKey: process.env.NEXT_PUBLIC_AVNU_KEY,
+      };
+      const gasTokenPrice = await fetchGasTokenPrices(options);
+      console.log('GasTokenPrice', gasTokenPrice);
 
-        const CallsOptions: ExecuteCallsOptions = {
-          gasTokenAddress: gasTokenPrice[0].tokenAddress,
-          maxGasTokenAmount: BigInt(gasTokenPrice[0].priceInETH * BigInt(2)),
-        };
+      // const estimatedGasFees = estimateCalls()
+      console.log('GasTokenPrice', gasTokenPrice);
 
-        const weihex = '0x' + wei.toString(16);
-        options = {
-          baseUrl: SEPOLIA_BASE_URL,
-          apiPublicKey: process.env.NEXT_PUBLIC_AVNU_PUBLIC_KEY,
-          apiKey: process.env.NEXT_PUBLIC_AVNU_KEY,
-        };
+      const CallsOptions: ExecuteCallsOptions = {
+        gasTokenAddress: gasTokenPrice[0].tokenAddress,
+        maxGasTokenAmount: BigInt(gasTokenPrice[0].priceInETH * BigInt(2)),
+      };
 
-        console.log('contractId', contractId);
+      console.log('Options', options);
+      console.log('contractId', contractId);
 
-        const calls: Call[] = [
+      const calls: Call[] = [
+        {
+          entrypoint: 'transfer',
+          contractAddress: contractId,
+          calldata: [receiver, weihex, '0x0'],
+        },
+      ];
+      const txid = (
+        await executeCalls(
+          account,
+          calls,
           {
-            entrypoint: 'transfer',
-            contractAddress: contractId,
-            calldata: [receiver, weihex, '0x0'],
+            gasTokenAddress: undefined,
+            maxGasTokenAmount: undefined,
           },
-        ];
-        txid = (
-          await executeCalls(
-            account,
-            calls,
-            {
-              gasTokenAddress: undefined,
-              maxGasTokenAmount: undefined,
-            },
-            options
-          )
-        ).transactionHash;
-      }
-
-      const userResp = await getUserByWallet(sender);
-      let user = userResp?.result;
-      if (!user) {
-        const anon = anonymousUser(sender, chainName);
-        user = await newUser(anon);
-        console.log('Anon', user);
-        if (!user) {
-          console.log('Error creating anonymous user');
-          setButtonText('ERROR');
-          setMessage('Error saving user data, contact support');
-          return false;
-        }
-      }
-
-      // Save donation to db
-      const network = process.env.NEXT_PUBLIC_STARKNET_NETWORK || '';
-      const saveResp = await saveDonation({
+          options
+        )
+      ).transactionHash;
+      setTxid(txid);
+      donationOperation({
         organization,
         initiative,
-        sender,
         chainName,
-        network,
+        sender,
+        receiver,
+        currency,
+        name,
+        email,
+        receipt,
         coinValue,
         usdValue,
-        currency,
-        user,
-      });
-      if (!saveResp) {
-        setButtonText('ERROR');
-        setMessage(
-          'Donation could not be saved to database, please contact support'
-        );
-        return false;
-      }
-
-      // Send receipt
-      if (receipt) {
-        console.log('RECEIPT');
-        setMessage('Sending receipt, wait a moment...');
-        const data = {
-          name: name,
-          email: email,
-          org: organization?.name,
-          address: organization?.mailingAddress,
-          ein: organization?.EIN,
-          currency: currency,
-          amount: coinValue.toFixed(2),
-          usd: usdValue.toFixed(2),
-        };
-        const receiptResp = await sendReceipt(data);
-        console.log('Receipt sent', receiptResp);
-      }
-
-      const NFTData = {
-        status: 'Claim',
-        organization: {
-          name: organization?.name,
-          address: organization?.mailingAddress,
-          ein: organization?.EIN,
-        },
-        initiativeId: initiative?.id,
-        tag: initiative?.tag,
-        image: initiative?.defaultAsset,
-        date: new Date(),
-        amount: coinValue,
-        ticker: currency,
-        amountFiat: usdValue,
-        fiatCurrencyCode: 'USD',
-        donor: {
-          name: name || user?.name || 'Anonymous',
-          address: sender,
-        },
-        receiver,
         contractId,
-        chainName,
-        rate,
-        txid,
-      };
-      setDonation(NFTData);
+      });
       setButtonText('DONE');
       setDisabled(true);
       setMessage('Thank you for your donation!');
-    } catch (ex) {
-      console.error(ex);
+    } catch (error) {
       setButtonText('ERROR');
       setMessage('Error sending transaction');
       return;
     }
+  }
+
+  async function gasTransaction({
+    organization,
+    initiative,
+    chainName,
+    sender,
+    receiver,
+    currency,
+    name,
+    email,
+    receipt,
+    account,
+    coinValue,
+    usdValue,
+    wei,
+    contractId,
+  }: IPayment) {
+    const contract = new Contract(ERC20, contractId, account);
+    try {
+      const transfer = await contract.transfer(receiver, {
+        low: wei,
+        high: 0,
+      });
+      const txid = transfer.transaction_hash;
+      setTxid(txid);
+      donationOperation({
+        organization,
+        initiative,
+        chainName,
+        sender,
+        receiver,
+        currency,
+        name,
+        email,
+        receipt,
+        coinValue,
+        usdValue,
+        contractId,
+      });
+      setButtonText('DONE');
+      setDisabled(true);
+      setMessage('Thank you for your donation!');
+    } catch (error) {
+      setButtonText('ERROR');
+      setMessage('Error sending transaction');
+      return;
+    }
+  }
+
+  async function donationOperation({
+    organization,
+    initiative,
+    chainName,
+    sender,
+    receiver,
+    currency,
+    name,
+    email,
+    receipt,
+    coinValue,
+    usdValue,
+    contractId,
+  }: IDonationOperation) {
+    const userResp = await getUserByWallet(sender);
+    let user = userResp?.result;
+    if (!user) {
+      const anon = anonymousUser(sender, chainName);
+      user = await newUser(anon);
+      console.log('Anon', user);
+      if (!user) {
+        console.log('Error creating anonymous user');
+        setButtonText('ERROR');
+        setMessage('Error saving user data, contact support');
+        return false;
+      }
+    }
+
+    // Save donation to db
+    const network = process.env.NEXT_PUBLIC_STARKNET_NETWORK || '';
+    const saveResp = await saveDonation({
+      organization,
+      initiative,
+      sender,
+      chainName,
+      network,
+      coinValue,
+      usdValue,
+      currency,
+      user,
+    });
+    if (!saveResp) {
+      setButtonText('ERROR');
+      setMessage(
+        'Donation could not be saved to database, please contact support'
+      );
+      return false;
+    }
+
+    // Send receipt
+    if (receipt) {
+      console.log('RECEIPT');
+      setMessage('Sending receipt, wait a moment...');
+      const data = {
+        name: name,
+        email: email,
+        org: organization?.name,
+        address: organization?.mailingAddress,
+        ein: organization?.EIN,
+        currency: currency,
+        amount: coinValue.toFixed(2),
+        usd: usdValue.toFixed(2),
+      };
+      const receiptResp = await sendReceipt(data);
+      console.log('Receipt sent', receiptResp);
+    }
+
+    const NFTData = {
+      status: 'Claim',
+      organization: {
+        name: organization?.name,
+        address: organization?.mailingAddress,
+        ein: organization?.EIN,
+      },
+      initiativeId: initiative?.id,
+      tag: initiative?.tag,
+      image: initiative?.defaultAsset,
+      date: new Date(),
+      amount: coinValue,
+      ticker: currency,
+      amountFiat: usdValue,
+      fiatCurrencyCode: 'USD',
+      donor: {
+        name: name || user?.name || 'Anonymous',
+        address: sender,
+      },
+      receiver,
+      contractId,
+      chainName,
+      rate,
+      txid,
+    };
+    setDonation(NFTData);
   }
 
   async function donate() {
@@ -457,6 +546,17 @@ export default function DonationForm(props: any) {
         : false;
     const currency =
       typeof currentCoin == 'string' ? currentCoin : currentCoin.value;
+    let decs = 18;
+    if (currency == 'USDC') {
+      decs = 6;
+    }
+
+    const amountStr = parseFloat(amount || '0').toFixed(decs);
+    const amountNum = parseFloat(amountStr);
+    const coinValue = amountNum;
+    const usdValue = amountNum * rate;
+    const wei = amountNum * 10 ** decs;
+    console.log('WEI', wei, amountNum, coinValue, usdValue);
 
     console.log('FORM --------');
     console.log('Chain:', chainName);
@@ -502,9 +602,39 @@ export default function DonationForm(props: any) {
     }
     const receiver = orgWallet.address;
 
-    // TODO coin contract here
+    const starknet = await connect({ modalMode: 'alwaysAsk' });
+    const account = starknet?.wallet?.account;
+    console.log('ACCT', account);
+    if (!account) {
+      setMessage('Could not connect to your wallet');
+      return;
+    }
 
-    sendPayment({
+    // @ts-ignore: Typescript sucks donkey balls
+    const sender = account?.address;
+    const chainId = constants.StarknetChainId.SN_SEPOLIA; // SN_MAIN
+    console.log('CHAINID', chainId);
+
+    let contractId =
+      '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d'; // STRK
+    if (currency == 'USDC') {
+      contractId =
+        '0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080'; // USDC
+    }
+    console.log('CONTRACT', contractId, account);
+
+    const options: GaslessOptions = {
+      baseUrl: SEPOLIA_BASE_URL,
+    };
+
+    try {
+      await fetchAccountCompatibility(sender, options);
+    } catch (error) {
+      setIsDialogOpen(true);
+      console.error('Error fetching account compatibility:', error);
+    }
+
+    const newState = {
       organization,
       initiative,
       chainName,
@@ -516,7 +646,15 @@ export default function DonationForm(props: any) {
       name,
       email,
       receipt,
-    });
+      account,
+      wei,
+      contractId,
+      sender,
+      coinValue,
+      usdValue,
+    };
+    setDonationState(newState);
+    sendPayment(newState);
   }
 
   function recalc(newRate: number, coin: string) {
@@ -649,6 +787,45 @@ export default function DonationForm(props: any) {
           <p className="mt-2 text-sm">{message}</p>
         </div>
       </Card>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              Wallet Compatibility Issue
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Your wallet is not compatible. Would you like to continue the
+              transaction by paying gas or learn how to upgrade your wallet?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-between">
+            <DialogClose>
+              <Button
+                onClick={() => {
+                  gasTransaction(donationState);
+                }}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Continue with Gas Payment
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                window.open(
+                  'https://support.argent.xyz/hc/en-us/articles/8802319054237-How-to-activate-deploy-my-Argent-X-wallet',
+                  '_blank'
+                );
+              }}
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Learn How to Upgrade
+            </Button>
+            <DialogClose className="text-gray-500 hover:underline">
+              Close
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

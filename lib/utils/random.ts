@@ -45,4 +45,24 @@ function UUID() {
   return ret;
 }
 
-export { randomAddress, randomString, randomNumber, UUID };
+const DummyPayment = {
+  organization: {},
+  initiative: {},
+  chainName: 'DummyChain',
+  chainInfo: 'DummyChainInfo',
+  wallet: 'dummyWalletAddress',
+  sender: 'dummySenderAddress',
+  receiver: 'dummyReceiverAddress',
+  currency: 'STRK',
+  amount: '0',
+  name: 'Dummy Name',
+  email: 'dummy@example.com',
+  receipt: false,
+  account: {},
+  wei: 0,
+  contractId: 'dummyContractId',
+  coinValue: 0,
+  usdValue: 0,
+};
+
+export { randomAddress, randomString, randomNumber, UUID, DummyPayment };
