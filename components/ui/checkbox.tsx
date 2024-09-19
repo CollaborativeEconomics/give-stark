@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
-import { cn } from '@/lib/shadCnUtil'
-import { InputProps } from './input'
-import { Label } from './label'
+import * as React from 'react';
+import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
+import { Check } from 'lucide-react';
+import { cn } from '@/lib/shadCnUtil';
+import { InputProps } from './input';
+import { Label } from './label';
 
 export interface CheckboxWithTextProps extends InputProps {
-  text: string
+  text: string;
 }
 
 const Checkbox = React.forwardRef<
@@ -32,8 +32,8 @@ const Checkbox = React.forwardRef<
       <Check className="h-auto w-auto" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
-))
-Checkbox.displayName = CheckboxPrimitive.Root.displayName
+));
+Checkbox.displayName = CheckboxPrimitive.Root.displayName;
 
 const CheckboxWithText = React.forwardRef<
   HTMLInputElement,
@@ -43,15 +43,15 @@ const CheckboxWithText = React.forwardRef<
     <div
       className={cn('flex flex-row align-middle gap-2', className)}
       {...props}
-      ref={ref} 
+      ref={ref}
     >
       <label className="flex flex-row gap-3">
         <Checkbox id={id} />
         <Label>{text}</Label>
       </label>
     </div>
-  )
-})
-CheckboxWithText.displayName = 'checkbox-with-text'
+  );
+});
+CheckboxWithText.displayName = 'checkbox-with-text';
 
-export { Checkbox, CheckboxWithText }
+export { Checkbox, CheckboxWithText };

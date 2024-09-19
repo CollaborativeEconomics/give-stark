@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
-import { cn } from '@/lib/shadCnUtil'
-import { OverlayHandler } from './OverlayHandler'
-import Parallax from '../Parallax'
+import { cn } from '@/lib/shadCnUtil';
+import { OverlayHandler } from './OverlayHandler';
+import Parallax from '../Parallax';
 
 export interface InstructionImageProps {
-  sourceProperty: string
+  sourceProperty: string;
 }
 
 const InstructionPaneSectionTitle = ({
@@ -18,32 +18,32 @@ const InstructionPaneSectionTitle = ({
     className={cn('md:mx-20 text-3xl font-bold pb-4', className)}
     {...props}
   />
-)
-InstructionPaneSectionTitle.displayName = 'instruction-pane-section-title'
+);
+InstructionPaneSectionTitle.displayName = 'instruction-pane-section-title';
 
 const InstructionPaneSectionText = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => (
   <span className={cn('max-w-[600px] md:mx-20', className)} {...props} />
-)
-InstructionPaneSectionText.displayName = 'instruction-pane-section-text'
+);
+InstructionPaneSectionText.displayName = 'instruction-pane-section-text';
 
 const InstructionPaneSectionContent = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLSpanElement>) => (
   <div className={cn('relative flex flex-col w-full', className)} {...props} />
-)
-InstructionPaneSectionContent.displayName = 'instruction-pane-section-content'
+);
+InstructionPaneSectionContent.displayName = 'instruction-pane-section-content';
 
 const InstructionPaneSectionImage = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <Parallax className={cn('w-full h-full', className)} {...props} />
-)
-InstructionPaneSectionImage.displayName = 'instruction-pane-section-image'
+);
+InstructionPaneSectionImage.displayName = 'instruction-pane-section-image';
 
 const InstructionPaneSectionOverlay = ({
   className,
@@ -56,8 +56,8 @@ const InstructionPaneSectionOverlay = ({
     />
     <Parallax className="mix-blend-screen absolute left-0 top-0 right-0 bottom-0 bg-[url('/home/ColorOverlay.png')]" />
   </div>
-)
-InstructionPaneSectionOverlay.displayName = 'instruction-pane-section-overlay'
+);
+InstructionPaneSectionOverlay.displayName = 'instruction-pane-section-overlay';
 
 function InstructionPaneSectionImageBlend(
   props: InstructionImageProps
@@ -70,7 +70,7 @@ function InstructionPaneSectionImageBlend(
         className="absolute left-0 right-0 bottom-0 top-0"
       />
     </div>
-  )
+  );
 }
 
 export {
@@ -79,4 +79,4 @@ export {
   InstructionPaneSectionContent,
   InstructionPaneSectionOverlay,
   InstructionPaneSectionImageBlend,
-}
+};

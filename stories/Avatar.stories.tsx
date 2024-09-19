@@ -1,4 +1,4 @@
-import '../app/globals.css'
+import '../app/globals.css';
 import OrganizationAvatar from '@/components/OrganizationAvatar';
 import type { Meta, StoryObj } from '@storybook/react';
 

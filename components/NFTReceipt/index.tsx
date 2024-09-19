@@ -1,19 +1,19 @@
-'use client'
-import { useContext, useState } from 'react'
-import Image from 'next/image'
-import { TimestampToDateString } from '@/components/ui/date-posted'
-import { ReceiptStatus } from '@/components/ui/receipt-status'
-import { ClaimButton } from '@/components/ui/claim-button'
-import { NFTReceiptText } from '@/components/NFTReceipt/NFTReceiptText'
-import { DonationContext } from '@/components/DonationView'
-import decimalString from '@/lib/utils/decimalString'
-import Receipt from '@/types/receipt'
+'use client';
+import { useContext, useState } from 'react';
+import Image from 'next/image';
+import { TimestampToDateString } from '@/components/ui/date-posted';
+import { ReceiptStatus } from '@/components/ui/receipt-status';
+import { ClaimButton } from '@/components/ui/claim-button';
+import { NFTReceiptText } from '@/components/NFTReceipt/NFTReceiptText';
+import { DonationContext } from '@/components/DonationView';
+import decimalString from '@/lib/utils/decimalString';
+import Receipt from '@/types/receipt';
 
 export default function NFTReceipt(props: { receipt: Receipt }) {
-  const receipt = props.receipt
-  const { donation, setDonation } = useContext(DonationContext)
-  const [ message, setMessage ] = useState('Claim your NFT')
-  const [ disabled, setDisabled ] = useState(true)
+  const receipt = props.receipt;
+  const { donation, setDonation } = useContext(DonationContext);
+  const [message, setMessage] = useState('Claim your NFT');
+  const [disabled, setDisabled] = useState(true);
   //console.log('Receipt:', receipt)
   //console.log('Donation', donation)
 
@@ -23,7 +23,7 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
     donor: string,
     destin: string,
     amount: number,
-    rate: number,
+    rate: number
   ) {
     console.log(
       'Minting NFT, wait...',
@@ -32,7 +32,7 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
       donor,
       destin,
       amount,
-      rate,
+      rate
     );
     const options = {
       method: 'POST',
@@ -41,12 +41,12 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
     };
     const response = await fetch('/api/nft/mint', options);
     //console.log('Minting response', response)
-    const result = await response.json()
-    console.log('>Result', result)
+    const result = await response.json();
+    console.log('>Result', result);
     if (!result.success) {
-      console.error('Error', result.error)
+      console.error('Error', result.error);
       //setMessage('Error minting NFT')
-      return { success: false, error: 'Error minting NFT' }
+      return { success: false, error: 'Error minting NFT' };
     }
     return result;
   }
@@ -55,30 +55,30 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
     if (donation.status !== 'Claim') {
       return;
     }
-    console.log('Claiming...', donation)
+    console.log('Claiming...', donation);
 
-    const state = structuredClone(donation)
-    state.status = 'Minting'
-    setDonation(state)
-    setMessage('Minting NFT, wait a moment...')
+    const state = structuredClone(donation);
+    state.status = 'Minting';
+    setDonation(state);
+    setMessage('Minting NFT, wait a moment...');
     const minted = await mintNFT(
       donation.txid,
       donation.initiativeId,
       donation.donor.address,
       donation.receiver,
       donation.amount,
-      donation.rate,
-    )
-    console.log('MINTED', minted)
-    const result = structuredClone(donation)
+      donation.rate
+    );
+    console.log('MINTED', minted);
+    const result = structuredClone(donation);
     if (minted?.success) {
-      result.status = 'Minted'
-      setDonation(result)
-      setMessage('NFT minted successfully!')
+      result.status = 'Minted';
+      setDonation(result);
+      setMessage('NFT minted successfully!');
     } else {
-      result.status = 'Failed'
-      setDonation(result)
-      setMessage('Minting NFT failed!')
+      result.status = 'Failed';
+      setDonation(result);
+      setMessage('Minting NFT failed!');
     }
   }
 
@@ -129,7 +129,8 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
             <NFTReceiptText>Monetary Value*</NFTReceiptText>
             <div className="flex border-dotted border-t-2 border-gray-300 w-full"></div>
             <NFTReceiptText>
-              {decimalString(donation.amountFiat, 2)} {donation.fiatCurrencyCode}
+              {decimalString(donation.amountFiat, 2)}{' '}
+              {donation.fiatCurrencyCode}
             </NFTReceiptText>
           </div>
           <NFTReceiptText className="font-normal pt-0">
@@ -154,5 +155,5 @@ export default function NFTReceipt(props: { receipt: Receipt }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

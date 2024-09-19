@@ -19,21 +19,21 @@ import {
 } from '@/components/ui/popover';
 import { CheckCircledIcon, ChevronDownIcon } from '@radix-ui/react-icons';
 
-export default function LocationSelect(props:any) {
+export default function LocationSelect(props: any) {
   const onChange = props?.onChange;
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [locations, setLocations] = useState([]);
 
   useEffect(() => {
-    async function loadLocations(){
-      const res = await fetch('/api/locations')
-      const list = await res.json()
-      setLocations(list)
-      console.log('LOCS', list)
+    async function loadLocations() {
+      const res = await fetch('/api/locations');
+      const list = await res.json();
+      setLocations(list);
+      console.log('LOCS', list);
     }
-    loadLocations()
-  },[])
+    loadLocations();
+  }, []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,11 +53,11 @@ export default function LocationSelect(props:any) {
           <CommandInput placeholder="Search location..." />
           <CommandEmpty>No location found</CommandEmpty>
           <CommandGroup>
-            {locations.map(item => (
+            {locations.map((item) => (
               <CommandItem
                 key={item}
-                onSelect={currentValue => {
-                  console.log('LOC', currentValue, 'OLD', value)
+                onSelect={(currentValue) => {
+                  console.log('LOC', currentValue, 'OLD', value);
                   setValue(item);
                   onChange(currentValue);
                   setOpen(false);
@@ -66,7 +66,7 @@ export default function LocationSelect(props:any) {
                 <CheckCircledIcon
                   className={cn(
                     'mr-2 h-4 w-4',
-                    value === item ? 'opacity-100' : 'opacity-0',
+                    value === item ? 'opacity-100' : 'opacity-0'
                   )}
                 />
                 {item}

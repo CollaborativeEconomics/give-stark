@@ -40,31 +40,33 @@ const categories = [
 */
 
 type CategoryType = {
-  value:string,
-  label:string
-}
+  value: string;
+  label: string;
+};
 
-export default function CategorySelect(props:any) {
+export default function CategorySelect(props: any) {
   const onChange = props?.onChange;
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [categories, setCategories] = useState([]);
   // TODO: get from properties
-  const distinct = 'initiatives' // organizations
+  const distinct = 'initiatives'; // organizations
 
   useEffect(() => {
-    async function loadCategories(){
-      const res = await fetch('/api/categories?distinct='+distinct)
-      const list = await res.json()
-      setCategories(list)
-      console.log('CATS', list)
+    async function loadCategories() {
+      const res = await fetch('/api/categories?distinct=' + distinct);
+      const list = await res.json();
+      setCategories(list);
+      console.log('CATS', list);
     }
-    loadCategories()
-  },[])
+    loadCategories();
+  }, []);
 
-  function findCategory(value:string){
-    const found = categories.find((item:CategoryType) => item?.value === value)
-    return found ? found['label'] : ''
+  function findCategory(value: string) {
+    const found = categories.find(
+      (item: CategoryType) => item?.value === value
+    );
+    return found ? found['label'] : '';
   }
 
   return (
@@ -76,9 +78,7 @@ export default function CategorySelect(props:any) {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {value
-            ? findCategory(value)
-            : 'Select category...'}
+          {value ? findCategory(value) : 'Select category...'}
           <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -87,7 +87,6 @@ export default function CategorySelect(props:any) {
           <CommandInput placeholder="Search category..." />
           <CommandEmpty>No category found.</CommandEmpty>
           <CommandGroup>
-
             {/*categories.map((item:CategoryType) => {
               // TODO: Fix duplicate category key
               return (

@@ -1,18 +1,20 @@
-import Main from '@/components/ui/main'
-import VideoBackground from '@/components/home/VideoBackground'
-import ImpactCarousel from '@/components/home/ImpactCarousel'
-import ActionBar from '@/components/home/ActionBar'
-import InstructionPanes from '@/components/home/InstructionPanes'
-import { getInitiatives } from '@/lib/utils/registry'
+import Main from '@/components/ui/main';
+import VideoBackground from '@/components/home/VideoBackground';
+import ImpactCarousel from '@/components/home/ImpactCarousel';
+import ActionBar from '@/components/home/ActionBar';
+import InstructionPanes from '@/components/home/InstructionPanes';
+import { getInitiatives } from '@/lib/utils/registry';
 
-export default async function Handler(props:{searchParams?:{query?:string, category?:string, location?:string}}) {
-  const query = props?.searchParams?.query || ''
-  const category = props?.searchParams?.category || ''
-  const location = props?.searchParams?.location || ''
-  const initiatives = await getInitiatives() || []
-  console.log('INITS', initiatives.length)
+export default async function Handler(props: {
+  searchParams?: { query?: string; category?: string; location?: string };
+}) {
+  const query = props?.searchParams?.query || '';
+  const category = props?.searchParams?.category || '';
+  const location = props?.searchParams?.location || '';
+  const initiatives = (await getInitiatives()) || [];
+  console.log('INITS', initiatives.length);
   //console.log('INITS', initiatives.map(it=>it.id))
-  console.log('SEARCH', query, category, location)
+  console.log('SEARCH', query, category, location);
   return (
     <>
       <div className="w-full top-0">
@@ -33,5 +35,5 @@ export default async function Handler(props:{searchParams?:{query?:string, categ
         <VideoBackground />
       </div>
     </>
-  )
+  );
 }

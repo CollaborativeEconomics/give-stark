@@ -2,273 +2,273 @@ export const ERC20 = [
   {
     members: [
       {
-        name: "low",
+        name: 'low',
         offset: 0,
-        type: "felt",
+        type: 'felt',
       },
       {
-        name: "high",
+        name: 'high',
         offset: 1,
-        type: "felt",
+        type: 'felt',
       },
     ],
-    name: "Uint256",
+    name: 'Uint256',
     size: 2,
-    type: "struct",
+    type: 'struct',
   },
   {
     data: [
       {
-        name: "from_",
-        type: "felt",
+        name: 'from_',
+        type: 'felt',
       },
       {
-        name: "to",
-        type: "felt",
+        name: 'to',
+        type: 'felt',
       },
       {
-        name: "value",
-        type: "Uint256",
+        name: 'value',
+        type: 'Uint256',
       },
     ],
     keys: [],
-    name: "Transfer",
-    type: "event",
+    name: 'Transfer',
+    type: 'event',
   },
   {
     data: [
       {
-        name: "owner",
-        type: "felt",
+        name: 'owner',
+        type: 'felt',
       },
       {
-        name: "spender",
-        type: "felt",
+        name: 'spender',
+        type: 'felt',
       },
       {
-        name: "value",
-        type: "Uint256",
+        name: 'value',
+        type: 'Uint256',
       },
     ],
     keys: [],
-    name: "Approval",
-    type: "event",
+    name: 'Approval',
+    type: 'event',
   },
   {
     inputs: [
       {
-        name: "name",
-        type: "felt",
+        name: 'name',
+        type: 'felt',
       },
       {
-        name: "symbol",
-        type: "felt",
+        name: 'symbol',
+        type: 'felt',
       },
       {
-        name: "decimals",
-        type: "felt",
+        name: 'decimals',
+        type: 'felt',
       },
       {
-        name: "initial_supply",
-        type: "Uint256",
+        name: 'initial_supply',
+        type: 'Uint256',
       },
       {
-        name: "recipient",
-        type: "felt",
+        name: 'recipient',
+        type: 'felt',
       },
     ],
-    name: "constructor",
+    name: 'constructor',
     outputs: [],
-    type: "constructor",
+    type: 'constructor',
   },
   {
     inputs: [],
-    name: "name",
+    name: 'name',
     outputs: [
       {
-        name: "name",
-        type: "felt",
+        name: 'name',
+        type: 'felt',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [],
-    name: "symbol",
+    name: 'symbol',
     outputs: [
       {
-        name: "symbol",
-        type: "felt",
+        name: 'symbol',
+        type: 'felt',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [],
-    name: "totalSupply",
+    name: 'totalSupply',
     outputs: [
       {
-        name: "totalSupply",
-        type: "Uint256",
+        name: 'totalSupply',
+        type: 'Uint256',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [],
-    name: "decimals",
+    name: 'decimals',
     outputs: [
       {
-        name: "decimals",
-        type: "felt",
+        name: 'decimals',
+        type: 'felt',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [
       {
-        name: "account",
-        type: "felt",
+        name: 'account',
+        type: 'felt',
       },
     ],
-    name: "balanceOf",
+    name: 'balanceOf',
     outputs: [
       {
-        name: "balance",
-        type: "Uint256",
+        name: 'balance',
+        type: 'Uint256',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [
       {
-        name: "owner",
-        type: "felt",
+        name: 'owner',
+        type: 'felt',
       },
       {
-        name: "spender",
-        type: "felt",
+        name: 'spender',
+        type: 'felt',
       },
     ],
-    name: "allowance",
+    name: 'allowance',
     outputs: [
       {
-        name: "remaining",
-        type: "Uint256",
+        name: 'remaining',
+        type: 'Uint256',
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [
       {
-        name: "recipient",
-        type: "felt",
+        name: 'recipient',
+        type: 'felt',
       },
       {
-        name: "amount",
-        type: "Uint256",
+        name: 'amount',
+        type: 'Uint256',
       },
     ],
-    name: "transfer",
+    name: 'transfer',
     outputs: [
       {
-        name: "success",
-        type: "felt",
+        name: 'success',
+        type: 'felt',
       },
     ],
-    type: "function",
+    type: 'function',
   },
   {
     inputs: [
       {
-        name: "sender",
-        type: "felt",
+        name: 'sender',
+        type: 'felt',
       },
       {
-        name: "recipient",
-        type: "felt",
+        name: 'recipient',
+        type: 'felt',
       },
       {
-        name: "amount",
-        type: "Uint256",
+        name: 'amount',
+        type: 'Uint256',
       },
     ],
-    name: "transferFrom",
+    name: 'transferFrom',
     outputs: [
       {
-        name: "success",
-        type: "felt",
+        name: 'success',
+        type: 'felt',
       },
     ],
-    type: "function",
+    type: 'function',
   },
   {
     inputs: [
       {
-        name: "spender",
-        type: "felt",
+        name: 'spender',
+        type: 'felt',
       },
       {
-        name: "amount",
-        type: "Uint256",
+        name: 'amount',
+        type: 'Uint256',
       },
     ],
-    name: "approve",
+    name: 'approve',
     outputs: [
       {
-        name: "success",
-        type: "felt",
+        name: 'success',
+        type: 'felt',
       },
     ],
-    type: "function",
+    type: 'function',
   },
   {
     inputs: [
       {
-        name: "spender",
-        type: "felt",
+        name: 'spender',
+        type: 'felt',
       },
       {
-        name: "added_value",
-        type: "Uint256",
+        name: 'added_value',
+        type: 'Uint256',
       },
     ],
-    name: "increaseAllowance",
+    name: 'increaseAllowance',
     outputs: [
       {
-        name: "success",
-        type: "felt",
+        name: 'success',
+        type: 'felt',
       },
     ],
-    type: "function",
+    type: 'function',
   },
   {
     inputs: [
       {
-        name: "spender",
-        type: "felt",
+        name: 'spender',
+        type: 'felt',
       },
       {
-        name: "subtracted_value",
-        type: "Uint256",
+        name: 'subtracted_value',
+        type: 'Uint256',
       },
     ],
-    name: "decreaseAllowance",
+    name: 'decreaseAllowance',
     outputs: [
       {
-        name: "success",
-        type: "felt",
+        name: 'success',
+        type: 'felt',
       },
     ],
-    type: "function",
+    type: 'function',
   },
 ];
