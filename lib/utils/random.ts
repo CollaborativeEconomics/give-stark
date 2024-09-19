@@ -63,6 +63,7 @@ const DummyPayment = {
   contractId: 'dummyContractId',
   coinValue: 0,
   usdValue: 0,
+  connector: ""
 };
 
 export { randomAddress, randomString, randomNumber, UUID, DummyPayment };

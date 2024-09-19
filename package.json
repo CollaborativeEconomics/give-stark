@@ -12,7 +12,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@avnu/gasless-sdk": "^0.1.4",
+    "@avnu/gasless-sdk": "^0.1.5",
     "@aws-sdk/client-s3": "^3.507.0",
     "@contentful/rich-text-react-renderer": "^15.19.0",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
@@ -29,6 +29,7 @@
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
+    "@radix-ui/react-toast": "^1.2.1",
     "@rive-app/react-canvas": "^4.7.0",
     "@starknet-react/chains": "^0.1.7",
     "@tanstack/react-table": "^8.11.2",

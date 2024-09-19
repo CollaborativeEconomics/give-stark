@@ -38,7 +38,7 @@ import NotFound from '@/components/NotFound';
 import { Wallet } from '@/types/models';
 import { ERC20 } from '@/contracts/ERC20.js';
 
-import { connect } from 'starknetkit';
+import { connect, Connector } from 'starknetkit';
 import {
   Provider,
   Contract,
@@ -59,6 +59,7 @@ import {
   SEPOLIA_BASE_URL,
   ExecuteCallsOptions,
   fetchGaslessStatus,
+  DeploymentData,
 } from '@avnu/gasless-sdk';
 
 interface IForm {
@@ -112,6 +113,7 @@ interface IPayment {
   contractId: string;
   coinValue: number;
   usdValue: number;
+  connector: any;
 }
 
 export default function DonationForm(props: any) {
@@ -150,13 +152,6 @@ export default function DonationForm(props: any) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [donationState, setDonationState] = useState<IPayment>(DummyPayment);
 
-  useEffect(() => {
-    if (donationState) {
-      // Perform actions based on the updated donationState
-      console.log('Updated Donation State:', donationState);
-      // You can also call any function that needs the updated state here
-    }
-  }, [donationState]);
 
   console.log('Chains', chains);
   console.log('CurrChain', currentChain);
@@ -280,52 +275,12 @@ export default function DonationForm(props: any) {
     setMessage('Sending payment, wait a moment...');
     setMessage('Approve payment in your wallet');
 
-    //   const myFrontendProviderUrl = 'https://free-rpc.nethermind.io/sepolia-juno/v0_7';
-    //   if (!starknet) {
-    //     console.error('Starknet is not connected');
-    //     return; // Handle the error appropriately
-    // }
-    //   const myWalletAccount = new WalletAccount({ nodeUrl: myFrontendProviderUrl }, starknet.account);
-    //   myWalletAccount.getDeploymentData()
-
-    // const walletdata = await wallet.deploymentData(validWallet)
-
     try {
       // Gasless Transaction
       const address: string = account.address;
 
       const weihex = '0x' + wei.toString(16);
 
-      // const response = await fetch(
-      //   'https://starknet.api.avnu.fi/paymaster/v1/build-typed-data',
-      //   {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       'api-key': process.env.NEXT_PUBLIC_AVNU_KEY || '',
-      //     },
-      //     body: JSON.stringify({
-      //       calls: calls,
-      //       userAddress: address,
-      //       }asTokenAddress: undefined,
-      //       maxGasTokenAmount: undefined,
-      //       accountClasshash: '0x13bfe114fb1cf405bfc3a7f8dbe2d91db146c17521d40dcf57e16d6b59fa8e6',
-      //     }),
-      //   }
-      // );
-      // const data = await response.json();
-      // }
-
-      // const accountStatus = await fetchGaslessStatus(options);
-      // console.log('AccountStatus', accountStatus);
-      // if (!gaslessCompatibility?.isCompatible) {
-      //   const transfer = await contract.transfer(receiver, {
-      //     low: wei,
-      //     high: 0,
-      //   });
-      //   txid = transfer.transaction_hash;
-      //   console.log('TxId:', txid);
-      // } else {
       const options: GaslessOptions = {
         baseUrl: SEPOLIA_BASE_URL,
         apiPublicKey: process.env.NEXT_PUBLIC_AVNU_PUBLIC_KEY,
@@ -363,6 +318,86 @@ export default function DonationForm(props: any) {
           options
         )
       ).transactionHash;
+      setTxid(txid);
+      donationOperation({
+        organization,
+        initiative,
+        chainName,
+        sender,
+        receiver,
+        currency,
+        name,
+        email,
+        receipt,
+        coinValue,
+        usdValue,
+        contractId,
+      });
+      setButtonText('DONE');
+      setDisabled(true);
+      setMessage('Thank you for your donation!');
+    } catch (error) {
+      setButtonText('ERROR');
+      setMessage('Error sending transaction');
+      return;
+    }
+  }
+
+  const getDeploymentData = async (connector: Connector) => {
+    if (!connector) return undefined;
+    console.log(connector);
+    // eslint-disable-next-line
+    // @ts-ignore
+    // eslint-disable-next-line
+    const walletData = await connector['_wallet'].request({
+      type: 'wallet_deploymentData',
+    });
+    return walletData;
+  };
+
+  async function underDeployedAccount({
+    organization,
+    initiative,
+    chainName,
+    sender,
+    receiver,
+    currency,
+    name,
+    email,
+    receipt,
+    account,
+    coinValue,
+    usdValue,
+    wei,
+    contractId,
+    connector,
+  }: IPayment) {
+    const deploymentData: DeploymentData | undefined = await getDeploymentData(
+      connector
+    );
+    console.log('Deployment Data', deploymentData);
+    try {
+      // Gasless Transaction
+
+      const weihex = '0x' + wei.toString(16);
+
+      const options: GaslessOptions = {
+        baseUrl: SEPOLIA_BASE_URL,
+        apiPublicKey: process.env.NEXT_PUBLIC_AVNU_PUBLIC_KEY,
+        apiKey: process.env.NEXT_PUBLIC_AVNU_KEY,
+      };
+      const gasTokenPrice = await fetchGasTokenPrices(options);
+      console.log('GasTokenPrice', gasTokenPrice);
+
+      const calls: Call[] = [
+        {
+          entrypoint: 'transfer',
+          contractAddress: contractId,
+          calldata: [receiver, weihex, '0x0'],
+        },
+      ];
+      const txid = (await executeCalls(account, calls, { deploymentData }, options))
+        .transactionHash;
       setTxid(txid);
       donationOperation({
         organization,
@@ -604,7 +639,8 @@ export default function DonationForm(props: any) {
 
     const starknet = await connect({ modalMode: 'alwaysAsk' });
     const account = starknet?.wallet?.account;
-    console.log('ACCT', account);
+    const connector = starknet.connector;
+
     if (!account) {
       setMessage('Could not connect to your wallet');
       return;
@@ -613,7 +649,14 @@ export default function DonationForm(props: any) {
     // @ts-ignore: Typescript sucks donkey balls
     const sender = account?.address;
     const chainId = constants.StarknetChainId.SN_SEPOLIA; // SN_MAIN
-    console.log('CHAINID', chainId);
+    if (starknet?.wallet?.id == 'argentX') {
+      if (account?.provider.chainId !== chainId) {
+        await starknet?.wallet?.request({
+          type: 'wallet_switchStarknetChain',
+          params: { chainId: constants.StarknetChainId.SN_SEPOLIA },
+        });
+      }
+    }
 
     let contractId =
       '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d'; // STRK
@@ -622,17 +665,6 @@ export default function DonationForm(props: any) {
         '0x053b40a647cedfca6ca84f542a0fe36736031905a9639a7f19a3c1e66bfd5080'; // USDC
     }
     console.log('CONTRACT', contractId, account);
-
-    const options: GaslessOptions = {
-      baseUrl: SEPOLIA_BASE_URL,
-    };
-
-    try {
-      await fetchAccountCompatibility(sender, options);
-    } catch (error) {
-      setIsDialogOpen(true);
-      console.error('Error fetching account compatibility:', error);
-    }
 
     const newState = {
       organization,
@@ -652,9 +684,27 @@ export default function DonationForm(props: any) {
       sender,
       coinValue,
       usdValue,
+      connector,
     };
     setDonationState(newState);
-    sendPayment(newState);
+
+    const options: GaslessOptions = {
+      baseUrl: SEPOLIA_BASE_URL,
+    };
+
+    try {
+      await fetchAccountCompatibility(sender, options);
+      sendPayment(newState);
+    } catch (error) {
+      console.error('Error fetching account compatibility:', error);
+      if (error instanceof Error && error.message === 'Account not deployed') {
+        if (starknet?.wallet?.id == 'argentX') {
+          await underDeployedAccount(newState);
+        } else {
+          setIsDialogOpen(true);
+        }
+      }
+    }
   }
 
   function recalc(newRate: number, coin: string) {
@@ -793,7 +843,7 @@ export default function DonationForm(props: any) {
             <DialogTitle className="text-xl font-semibold">
               Wallet Compatibility Issue
             </DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogDescription className="text-white-600">
               Your wallet is not compatible. Would you like to continue the
               transaction by paying gas or learn how to upgrade your wallet?
             </DialogDescription>
@@ -820,7 +870,7 @@ export default function DonationForm(props: any) {
             >
               Learn How to Upgrade
             </Button>
-            <DialogClose className="text-gray-500 hover:underline">
+            <DialogClose className="text-white-500 hover:underline">
               Close
             </DialogClose>
           </DialogFooter>
